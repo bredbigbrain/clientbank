@@ -27,15 +27,22 @@ namespace ClientBank
 
             foreach (XmlNode clientNode in Doc.DocumentElement.ChildNodes)
             {
-                int id;
-                string name;
-                float money;
+                if (clientNode.Name.Equals("NumberOfTransactions"))
+                {
+                    long.TryParse(clientNode.InnerText, out transId);
+                }
+                else
+                {
+                    int id;
+                    string name;
+                    float money;
 
-                int.TryParse(clientNode.ChildNodes.Item(0).InnerText, out id);
-                name = clientNode.ChildNodes.Item(1).InnerText;
-                float.TryParse(clientNode.ChildNodes.Item(2).InnerText, out money);
+                    int.TryParse(clientNode.ChildNodes.Item(0).InnerText, out id);
+                    name = clientNode.ChildNodes.Item(1).InnerText;
+                    float.TryParse(clientNode.ChildNodes.Item(2).InnerText, out money);
 
-                AddCient(id, name, money);
+                    AddCient(id, name, money);
+                }
             }
 
             foreach (XmlNode clientNode in Doc.DocumentElement.ChildNodes)
@@ -48,10 +55,12 @@ namespace ClientBank
                         int recipientId;
                         float value;
 
-                        long.TryParse(clientNode.ChildNodes.Item(0).InnerText, out id);
-                        int.TryParse(clientNode.ChildNodes.Item(1).InnerText, out senderId);
-                        int.TryParse(clientNode.ChildNodes.Item(2).InnerText, out recipientId);
-                        float.TryParse(clientNode.ChildNodes.Item(3).InnerText, out value);
+                        long.TryParse(transactNode.ChildNodes.Item(0).InnerText, out id);
+                        int.TryParse(transactNode.ChildNodes.Item(1).InnerText, out senderId);
+                        int.TryParse(transactNode.ChildNodes.Item(2).InnerText, out recipientId);
+                        float.TryParse(transactNode.ChildNodes.Item(3).InnerText, out value);
+
+                        Transaction trans = new Transaction(id, senderId, recipientId, value);
                     }
             }
         }
@@ -126,7 +135,7 @@ namespace ClientBank
                 return;
             }
 
-            Transaction transa = new Transaction(sender, recipient, value, transId);
+            Transaction trans = new Transaction(sender, recipient, value, transId);
             transId++;
         }
 
@@ -213,6 +222,8 @@ namespace ClientBank
             XmlWriter output = XmlWriter.Create(path, sett);
             output.WriteStartElement(path);
 
+            output.WriteElementString("NumberOfTransactions", transId.ToString());
+            
             foreach (Client cl in clients)
             {
                 output.WriteStartElement("Client");
@@ -221,23 +232,36 @@ namespace ClientBank
                 output.WriteElementString("Name", cl.name);
                 output.WriteElementString("Money", cl.GetMoney().ToString());
 
-                if ( cl.GetTransactionList() != null & cl.GetTransactionList().Count > 0)
+                if (cl.GetTransactionList() != null & cl.GetTransactionList().Count > 0)
                 {
-                    output.WriteStartElement("Transactions");
+                    List<Transaction> sendedTrans = new List<Transaction>();
 
                     foreach (Transaction tr in cl.GetTransactionList())
                     {
-                        output.WriteStartElement("TransAct");
+                        if (tr.sender.id == cl.id)
+                        {
+                            sendedTrans.Add(tr);
+                        }
+                    }
 
-                        output.WriteElementString("ID", tr.id.ToString());
-                        output.WriteElementString("SenderID", tr.sender.id.ToString());
-                        output.WriteElementString("RecipientID", tr.recipient.id.ToString());
-                        output.WriteElementString("Value", tr.value.ToString());
+                    if (sendedTrans.Count > 0)
+                    {
+                        output.WriteStartElement("Transactions");
+
+                        foreach (Transaction tr in sendedTrans)
+                        {
+                            output.WriteStartElement("TransAct");
+
+                            output.WriteElementString("ID", tr.id.ToString());
+                            output.WriteElementString("SenderID", tr.sender.id.ToString());
+                            output.WriteElementString("RecipientID", tr.recipient.id.ToString());
+                            output.WriteElementString("Value", tr.value.ToString());
+
+                            output.WriteEndElement();
+                        }
 
                         output.WriteEndElement();
                     }
-
-                    output.WriteEndElement();
                 }
                 output.WriteEndElement();
             }

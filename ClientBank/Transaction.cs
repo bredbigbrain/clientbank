@@ -38,7 +38,18 @@ namespace ClientBank
             id = _id;
 
             sender = Storage.FindClientByID(senderId);
+            if(sender == null)
+            {
+                throw new Exception("Transaction reading fail");
+            }
+            sender.AddTransaction(this);
+
             recipient = Storage.FindClientByID(recipientId);
+            if (recipient == null)
+            {
+                throw new Exception("Transaction reading fail");
+            }
+            recipient.AddTransaction(this);
 
             value = _value;
         }

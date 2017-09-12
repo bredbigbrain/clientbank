@@ -1,0 +1,36 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<test.xml>
+ <NumberOfTransactions>3</NumberOfTransactions>
+ <Client>
+  <ID>123</ID>
+  <Name>EeeeBoy</Name>
+  <Money>65</Money>
+  <Transactions>
+   <TransAct>
+    <ID>0</ID>
+    <SenderID>123</SenderID>
+    <RecipientID>321</RecipientID>
+    <Value>15</Value>
+   </TransAct>
+   <TransAct>
+    <ID>2</ID>
+    <SenderID>123</SenderID>
+    <RecipientID>321</RecipientID>
+    <Value>25</Value>
+   </TransAct>
+  </Transactions>
+ </Client>
+ <Client>
+  <ID>321</ID>
+  <Name>SpiderMan</Name>
+  <Money>85</Money>
+  <Transactions>
+   <TransAct>
+    <ID>1</ID>
+    <SenderID>321</SenderID>
+    <RecipientID>123</RecipientID>
+    <Value>5</Value>
+   </TransAct>
+  </Transactions>
+ </Client>
+</test.xml>
