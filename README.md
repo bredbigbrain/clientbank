@@ -1,5 +1,5 @@
 # clientbank
-educational project sibguti RI48
+educational project sibsutis RI48
 
 Модуль формата BlackBox
 
