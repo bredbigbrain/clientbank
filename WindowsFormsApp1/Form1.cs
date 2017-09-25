@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -12,19 +13,240 @@ namespace WindowsFormsApp1
 {
     public partial class Form1 : Form
     {
+        StorageView storageV;   //ViewModel базы
+        string[,] transactions; //массив транзакций выбранного клиента
+
+        enum UI_States: int     //состояния интерфейса
+        {
+            BASE_EMPTY,
+            BASE_INITIALIZED
+        }
+
         public Form1()
         {
             InitializeComponent();
+            UpdateUI(UI_States.BASE_EMPTY);
         }
 
-        private void dataGridView1_CellContentClick(object sender, DataGridViewCellEventArgs e)
+        private void Form1_Load(object sender, EventArgs e) //выбор клиента в таблице
+        {
+            storageV = new StorageView();
+        }
+
+        void UpdateClientsSheets()  //обновить таблицу клиентов
+        {
+            dataGridView1.Rows.Clear();
+            foreach (Client cl in storageV.GetClients())
+            {
+                dataGridView1.Rows.Add(cl.id, cl.name, cl.GetMoney());
+            }
+        }   
+
+        void UpdateTransactionsSheet(DataGridViewCellEventArgs e)   //обновить таблицу транзакций
+        {
+            dataGridView2.Rows.Clear();
+
+            if (e != null)
+            {
+                int id;
+                if (int.TryParse(dataGridView1[0, e.RowIndex].Value.ToString(), out id))
+                    if (storageV.GetClientsTransactions(id) != null)
+                    {
+                        transactions = storageV.GetClientsTransactions(id);
+
+                        for (int i = 0; i < transactions.GetLength(0); i++)
+                        {
+                            dataGridView2.Rows.Add(transactions[i, 0], transactions[i, 1], transactions[i, 2]);
+                        }
+                    }
+            }
+        }   
+
+        private void открытьToolStripMenuItem_Click(object sender, EventArgs e) //открыть
+        {
+            OpenFileDialog dialog = new OpenFileDialog();
+            dialog.Filter = "xml files (*.xml)|*.xml";
+            if (dialog.ShowDialog() != DialogResult.OK)
+                return;
+            string file_name = Path.GetFileName(dialog.FileName);
+
+            try
+            {
+                storageV.OpenBaseFile(file_name);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Open File Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                storageV.ClearClientsList();
+            }
+
+            UpdateUI(UI_States.BASE_INITIALIZED);
+            UpdateClientsSheets();
+        }   
+
+        private void сохранитьToolStripMenuItem_Click(object sender, EventArgs e)   //сохранить
+        {
+            try
+            {
+                storageV.SaveBaseXML();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Save File Error", MessageBoxButtons.OKCancel, MessageBoxIcon.Warning);
+            }
+        }   
+
+        private void новаяБазаToolStripMenuItem_Click_1(object sender, EventArgs e) //новая база
+        {
+            SaveFileDialog save = new SaveFileDialog();
+            save.Title = "Create XML file";
+            save.Filter = "xml files (*.xml)|*.xml";
+            if (save.ShowDialog() != DialogResult.OK)
+                return;
+            string file_name = Path.GetFileName(save.FileName);
+
+            storageV.CreateNewBase(file_name);
+
+            UpdateUI(UI_States.BASE_INITIALIZED);
+            UpdateClientsSheets();
+            UpdateTransactionsSheet(null);
+        }       
+
+        private void сохранитьКакToolStripMenuItem_Click(object sender, EventArgs e)    //сохранить как...
+        {
+            SaveFileDialog save = new SaveFileDialog();
+            save.Filter = "xml files (*.xml)|*.xml";
+            if (save.ShowDialog() != DialogResult.OK)
+                return;
+            string file_name = Path.GetFileName(save.FileName);
+
+            try
+            {
+                storageV.SaveBaseAsXML(file_name);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Save File Error", MessageBoxButtons.OKCancel, MessageBoxIcon.Warning);
+            }
+        }   
+
+        private void button1_Click(object sender, EventArgs e)  //добавить клиента
+        {
+            try
+            {
+                Form2 form2 = new Form2();
+                form2.ShowDialog();
+                if (form2.DialogResult == DialogResult.OK)
+                {
+                    storageV.AddClient(form2.ReturnData()[0], float.Parse(form2.ReturnData()[1]));
+                    UpdateClientsSheets();
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Incorrect values", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+        }   
+
+        private void button3_Click(object sender, EventArgs e)  //удалить всех
+        {
+            try
+            {
+                storageV.ClearClientsList();
+                UpdateClientsSheets();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+        }
+
+        private void button4_Click(object sender, EventArgs e)  //перевод средств
+        {
+            try
+            {
+                Form3 form3 = new Form3(storageV);
+                form3.ShowDialog();
+                if (form3.DialogResult == DialogResult.OK)
+                {
+                    string[] data = form3.ReturnData();
+                    storageV.Transaction(int.Parse(data[0]), int.Parse(data[1]), float.Parse(data[2]));
+                }
+
+                UpdateClientsSheets();
+                UpdateTransactionsSheet(null);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+        }
+
+        private void button2_Click(object sender, EventArgs e)  //удаление клиента
         {
 
         }
 
-        private void Form1_Load(object sender, EventArgs e)
+        private void dataGridView1_CellEnter(object sender, DataGridViewCellEventArgs e)    //выбор клиента в таблице
         {
+            UpdateTransactionsSheet(e);
+        }
 
+        private void button6_Click(object sender, EventArgs e)  //отмена транзакции
+        {
+            try
+            {
+                int rowIdex = dataGridView1.CurrentCell.RowIndex;
+                string cellValue = dataGridView1.Rows[rowIdex].Cells[0].Value.ToString();
+
+                int clientID = int.Parse(cellValue);
+                long transID = long.Parse(transactions[dataGridView1.CurrentCell.RowIndex, 3]);
+                storageV.RevokeTransaction(clientID, transID);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Revoke Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+
+            UpdateClientsSheets();
+            UpdateTransactionsSheet(null);
+        }
+
+        private void UpdateUI(UI_States state)  //обновить активность элементов интерфейса
+        {
+            switch (state)
+            {
+                case UI_States.BASE_EMPTY:
+                    {
+                        button1.Enabled = false;
+                        button2.Enabled = false;
+                        button3.Enabled = false;
+                        button4.Enabled = false;
+                        button5.Enabled = false;
+                        button6.Enabled = false;
+
+                        ToolStripMenuItem fileItem = menuStrip1.Items[0] as ToolStripMenuItem;
+                        fileItem.DropDownItems[1].Enabled = false;
+                        fileItem.DropDownItems[2].Enabled = false;
+
+                        break;
+                    }
+                case UI_States.BASE_INITIALIZED:
+                    {
+                        button1.Enabled = true;
+                        button2.Enabled = false;
+                        button3.Enabled = true;
+                        button4.Enabled = true;
+                        button5.Enabled = false;
+                        button6.Enabled = true;
+
+                        ToolStripMenuItem fileItem = menuStrip1.Items[0] as ToolStripMenuItem;
+                        fileItem.DropDownItems[1].Enabled = true;
+                        fileItem.DropDownItems[2].Enabled = true;
+                        break;
+                    }
+            }
+                
         }
     }
 }

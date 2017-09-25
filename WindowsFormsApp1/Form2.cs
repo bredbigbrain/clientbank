@@ -12,14 +12,35 @@ namespace WindowsFormsApp1
 {
     public partial class Form2 : Form
     {
+        string[] data;
+
         public Form2()
         {
             InitializeComponent();
+            data = new string[2];
         }
 
         private void label1_Click(object sender, EventArgs e)
         {
 
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            data[0] = textBox1.Text;
+            data[1] = textBox2.Text;
+
+            this.DialogResult = DialogResult.OK;
+        }
+
+        public string[] ReturnData()
+        {
+            return data;
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            Close();
         }
     }
 }
