@@ -26,11 +26,18 @@ namespace WindowsFormsApp1
 
             recipient.CangeMoney(value);
             recipient.AddTransaction(this);
+        }
 
-            Console.WriteLine("---------------------------------------------------");
-            Console.WriteLine(ToString());
-            Console.WriteLine(sender.ToString());
-            Console.WriteLine(recipient.ToString());
+        public Transaction(Client _recipient, float _value, long _id)
+        {
+            id = _id;
+
+            sender = Client.GetBankAsClient();
+            recipient = _recipient;
+            value = _value;
+
+            recipient.CangeMoney(value);
+            recipient.AddTransaction(this);
         }
 
         public Transaction(long _id, int senderId, int recipientId, float _value)
@@ -56,15 +63,17 @@ namespace WindowsFormsApp1
 
         public void Revoke()
         {
-            sender.CangeMoney(value);
-            sender.RemoveTransaction(this);
+            if (sender != null)
+            {
+                sender.CangeMoney(value);
+                sender.RemoveTransaction(this);
+            }
 
-            recipient.CangeMoney(-value);
-            recipient.RemoveTransaction(this);
-
-            Console.WriteLine("---------------------------------------------------");
-            Console.WriteLine(sender.ToString());
-            Console.WriteLine(recipient.ToString());
+            if (recipient != null)
+            {
+                recipient.CangeMoney(-value);
+                recipient.RemoveTransaction(this);
+            }
         }
 
         public override string ToString()

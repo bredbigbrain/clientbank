@@ -15,6 +15,7 @@ namespace WindowsFormsApp1
     {
         StorageView storageV;   //ViewModel базы
         string[,] transactions; //массив транзакций выбранного клиента
+        int id; //id выбранного клиента
 
         enum UI_States: int     //состояния интерфейса
         {
@@ -28,7 +29,7 @@ namespace WindowsFormsApp1
             UpdateUI(UI_States.BASE_EMPTY);
         }
 
-        private void Form1_Load(object sender, EventArgs e) //выбор клиента в таблице
+        private void Form1_Load(object sender, EventArgs e) 
         {
             storageV = new StorageView();
         }
@@ -48,7 +49,6 @@ namespace WindowsFormsApp1
 
             if (e != null)
             {
-                int id;
                 if (int.TryParse(dataGridView1[0, e.RowIndex].Value.ToString(), out id))
                     if (storageV.GetClientsTransactions(id) != null)
                     {
@@ -138,7 +138,16 @@ namespace WindowsFormsApp1
                 form2.ShowDialog();
                 if (form2.DialogResult == DialogResult.OK)
                 {
-                    storageV.AddClient(form2.ReturnData()[0], float.Parse(form2.ReturnData()[1]));
+                    bool prevConvict;
+                    if(form2.ReturnData()[2].Equals("Unchecked"))
+                    {
+                        prevConvict = false;
+                    }
+                    else
+                    {
+                        prevConvict = true;
+                    }
+                    storageV.AddClient(form2.ReturnData()[0], float.Parse(form2.ReturnData()[1]), prevConvict, float.Parse(form2.ReturnData()[3]));
                     UpdateClientsSheets();
                 }
             }
@@ -212,6 +221,36 @@ namespace WindowsFormsApp1
             UpdateTransactionsSheet(null);
         }
 
+        private void button8_Click(object sender, EventArgs e)  //кредит
+        {
+            try
+            {
+                float a;
+                string checkResult = StorageView.AllowedCreditSumm(Storage.FindClientByID(id), 1.5f, 12);
+
+                if (float.TryParse(checkResult, out a))
+                {
+                        Form4 form4 = new Form4(storageV, id);
+                        form4.ShowDialog();
+                    if (form4.DialogResult == DialogResult.OK)
+                    {
+                        Client cl = form4.ReturnClient();
+                        storageV.Credit(cl, form4.ReturnSumm());
+                    }
+                }
+                else
+                {
+                    MessageBox.Show(checkResult, "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                }
+                UpdateClientsSheets();
+                UpdateTransactionsSheet(null);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+        }
+
         private void UpdateUI(UI_States state)  //обновить активность элементов интерфейса
         {
             switch (state)
@@ -224,6 +263,12 @@ namespace WindowsFormsApp1
                         button4.Enabled = false;
                         button5.Enabled = false;
                         button6.Enabled = false;
+                        button7.Enabled = false;
+                        button8.Enabled = false;
+                        button9.Enabled = false;
+                        button10.Enabled = false;
+                        button11.Enabled = false;
+                        button12.Enabled = false;
 
                         ToolStripMenuItem fileItem = menuStrip1.Items[0] as ToolStripMenuItem;
                         fileItem.DropDownItems[1].Enabled = false;
@@ -234,11 +279,10 @@ namespace WindowsFormsApp1
                 case UI_States.BASE_INITIALIZED:
                     {
                         button1.Enabled = true;
-                        button2.Enabled = false;
                         button3.Enabled = true;
                         button4.Enabled = true;
-                        button5.Enabled = false;
                         button6.Enabled = true;
+                        button8.Enabled = true;
 
                         ToolStripMenuItem fileItem = menuStrip1.Items[0] as ToolStripMenuItem;
                         fileItem.DropDownItems[1].Enabled = true;

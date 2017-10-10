@@ -11,14 +11,18 @@ namespace WindowsFormsApp1
         public int id { get; }
         public string name { get; }
         private float money;
+        public bool prevConvictions { get; }
+        public float monthlyIncome { get; }
 
         private List<Transaction> transactions;
 
-        public Client(int _id, string _name, float _money)
+        public Client(int _id, string _name, float _money, bool _prevC, float _income)
         {
             id = _id;
             name = _name;
             money = _money;
+            prevConvictions = _prevC;
+            monthlyIncome = _income;
             transactions = new List<Transaction>();
         }
 
@@ -55,6 +59,11 @@ namespace WindowsFormsApp1
         public override string ToString()
         {
             return String.Concat("ID: ", id, ", Name: ", name, ", Money: ", money);
+        }
+
+        public static Client GetBankAsClient()
+        {
+            return new Client(-1, "Сельхозбанк", 0, false, 0);
         }
     }
 }

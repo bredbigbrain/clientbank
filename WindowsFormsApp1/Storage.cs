@@ -41,19 +41,23 @@ namespace WindowsFormsApp1
                     int id;
                     string name;
                     float money;
+                    bool prevC;
+                    float income;
 
                     int.TryParse(Node.ChildNodes.Item(0).InnerText, out id);
                     name = Node.ChildNodes.Item(1).InnerText;
                     float.TryParse(Node.ChildNodes.Item(2).InnerText, out money);
+                    bool.TryParse(Node.ChildNodes.Item(3).InnerText, out prevC);
+                    float.TryParse(Node.ChildNodes.Item(4).InnerText, out income);
 
-                    ReadClient(id, name, money);
+                    ReadClient(id, name, money, prevC, income);
                 }
             }
 
             foreach (XmlNode clientNode in Doc.DocumentElement.ChildNodes)
             {
-                if (clientNode.Name.Equals("Client") & clientNode.ChildNodes.Count == 4)
-                    foreach (XmlNode transactNode in clientNode.ChildNodes.Item(3))
+                if (clientNode.Name.Equals("Client") & clientNode.ChildNodes.Count == 6)
+                    foreach (XmlNode transactNode in clientNode.ChildNodes.Item(5))
                     {
                         long id;
                         int senderId;
@@ -70,12 +74,12 @@ namespace WindowsFormsApp1
             }
         }
 
-        private void ReadClient(int id, string _name, float _money)
+        private void ReadClient(int id, string _name, float _money, bool _prevC, float _income)
         {
-            clients.Add(new Client(id, _name, _money));
+            clients.Add(new Client(id, _name, _money, _prevC, _income));
         }
 
-        public void AddCient(string _name, float _money)
+        public void AddCient(string _name, float _money, bool _prevC, float _income)
         {
             foreach (Client cl in clients)
             {
@@ -85,7 +89,7 @@ namespace WindowsFormsApp1
                 }
             }
 
-            clients.Add(new Client(clientId, _name, _money));
+            clients.Add(new Client(clientId, _name, _money, _prevC, _income));
             clientId++;
         }
         /*
@@ -147,6 +151,19 @@ namespace WindowsFormsApp1
 
             Transaction trans = new Transaction(sender, recipient, value, transId);
             transId++;
+        }
+
+        public void Credit(int recipientId, float value)
+        {
+            foreach(Client cl in clients)
+            {
+                if(cl.id == recipientId)
+                {
+                    Transaction trans = new Transaction(cl, value, transId);
+                    return;
+                }
+            }
+            
         }
 
         public void RevokeTransaction(int clientId, long transId)
@@ -218,11 +235,15 @@ namespace WindowsFormsApp1
         public static Client FindClientByID( int id)
         {
             if (clients != null)
+            {
+                if (id == -1)
+                    return Client.GetBankAsClient();
                 foreach (Client cl in clients)
                 {
                     if (cl.id == id)
                         return cl;
                 }
+            }
             throw new Exception("Cannont find client");
         }
 
@@ -245,6 +266,8 @@ namespace WindowsFormsApp1
                 output.WriteElementString("ID", cl.id.ToString());
                 output.WriteElementString("Name", cl.name);
                 output.WriteElementString("Money", cl.GetMoney().ToString());
+                output.WriteElementString("PrevConvictions", cl.prevConvictions.ToString());
+                output.WriteElementString("MonthlyIncome", cl.monthlyIncome.ToString());
 
                 if (cl.GetTransactionList() != null & cl.GetTransactionList().Count > 0)
                 {
@@ -252,7 +275,7 @@ namespace WindowsFormsApp1
 
                     foreach (Transaction tr in cl.GetTransactionList())
                     {
-                        if (tr.sender.id == cl.id)
+                        if ((tr.sender.id == cl.id) || (tr.sender.id == -1))
                         {
                             sendedTrans.Add(tr);
                         }

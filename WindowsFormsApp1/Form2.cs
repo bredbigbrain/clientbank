@@ -17,7 +17,7 @@ namespace WindowsFormsApp1
         public Form2()
         {
             InitializeComponent();
-            data = new string[2];
+            data = new string[4];
         }
 
         private void label1_Click(object sender, EventArgs e)
@@ -29,6 +29,8 @@ namespace WindowsFormsApp1
         {
             data[0] = textBox1.Text;
             data[1] = textBox2.Text;
+            data[2] = checkBox1.CheckState.ToString();
+            data[3] = textBox3.Text;
 
             this.DialogResult = DialogResult.OK;
         }
@@ -41,6 +43,11 @@ namespace WindowsFormsApp1
         private void button2_Click(object sender, EventArgs e)
         {
             Close();
+        }
+
+        private void Form2_Load(object sender, EventArgs e)
+        {
+
         }
     }
 }

@@ -24,14 +24,19 @@ namespace WindowsFormsApp1
                 storage.ClearClientsList();
         }
 
-        public void AddClient(string _name, float _money)  //добавляет клиента
+        public void AddClient(string _name, float _money, bool _prevC, float _income)  //добавляет клиента
         {
-            storage.AddCient(_name, _money);
+            storage.AddCient(_name, _money, _prevC, _income);
         }   
 
         public void Transaction(int senderID, int recipientID, float value )    //осуществляет перевод
         {
             storage.Transaction(senderID, recipientID, value);
+        }
+
+        public void Credit(Client cl, float value)
+        {
+            storage.Credit(cl.id, value);
         }
 
         public void RevokeTransaction(int clientID, long transID)   //отменяет перевод
@@ -90,6 +95,18 @@ namespace WindowsFormsApp1
         {
             storage.SaveXML(_path);
             path = _path;
+        }
+
+        public static string AllowedCreditSumm(Client cl, float precent, int time)    //доступная сумма кредита
+        {
+            if (cl.prevConvictions)
+                return "Клиент имеет судимость, отказ в кредите";
+
+            float summ = (cl.monthlyIncome - 10000) * time + (((cl.monthlyIncome - 10000) * time) * precent);
+            if (summ <= 0)
+                return "У клиента недостаточный доход, отказ в кредите";
+
+            return summ.ToString();
         }
     }
 }
