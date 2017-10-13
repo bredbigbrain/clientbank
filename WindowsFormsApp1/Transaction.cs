@@ -6,43 +6,30 @@ using System.Threading.Tasks;
 
 namespace WindowsFormsApp1
 {
-    public class Transaction
+    public class Transaction: Operation
     { 
-        public long id { get; }
-        public Client sender { get; }
-        public Client recipient { get; }
-        public float value { get; }
-
         public Transaction(Client _sender, Client _recipient, float _value, long _id)
         {
             id = _id;
+            type = "Transaction";
+            time = 0;
 
             sender = _sender;
             recipient = _recipient;
             value = _value;
 
-            sender.CangeMoney(-value);
+            sender.ChangeMoney(-value);
             sender.AddTransaction(this);
 
-            recipient.CangeMoney(value);
-            recipient.AddTransaction(this);
-        }
-
-        public Transaction(Client _recipient, float _value, long _id)
-        {
-            id = _id;
-
-            sender = Client.GetBankAsClient();
-            recipient = _recipient;
-            value = _value;
-
-            recipient.CangeMoney(value);
+            recipient.ChangeMoney(value);
             recipient.AddTransaction(this);
         }
 
         public Transaction(long _id, int senderId, int recipientId, float _value)
         {
             id = _id;
+            type = "Transaction";
+            time = 0;
 
             sender = Storage.FindClientByID(senderId);
             if(sender == null)
@@ -65,20 +52,15 @@ namespace WindowsFormsApp1
         {
             if (sender != null)
             {
-                sender.CangeMoney(value);
+                sender.ChangeMoney(value);
                 sender.RemoveTransaction(this);
             }
 
             if (recipient != null)
             {
-                recipient.CangeMoney(-value);
+                recipient.ChangeMoney(-value);
                 recipient.RemoveTransaction(this);
             }
-        }
-
-        public override string ToString()
-        {
-            return String.Concat("TransID: ", id, ", SenderID: ", sender.id, ", RecipienetID: ", recipient.id, ", Value: ", value);
         }
     }
 }

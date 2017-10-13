@@ -13,17 +13,20 @@ namespace WindowsFormsApp1
         private float money;
         public bool prevConvictions { get; }
         public float monthlyIncome { get; }
+        public int delayMonths { get; set; }
 
-        private List<Transaction> transactions;
 
-        public Client(int _id, string _name, float _money, bool _prevC, float _income)
+        private List<Operation> transactions;
+
+        public Client(int _id, string _name, float _money, bool _prevC, float _income, int _delayMonths)
         {
             id = _id;
             name = _name;
             money = _money;
             prevConvictions = _prevC;
             monthlyIncome = _income;
-            transactions = new List<Transaction>();
+            transactions = new List<Operation>();
+            delayMonths = _delayMonths;
         }
 
         public float GetMoney()
@@ -31,39 +34,51 @@ namespace WindowsFormsApp1
             return money;
         }
         
-        public void CangeMoney(float value)
+        public void ChangeMoney(float value)
         {
             money += value;
         }
 
-        public void AddTransaction(Transaction trans)
+        public void AddTransaction(Operation trans)
         {
             transactions.Add(trans);
         }
 
-        public void RemoveTransaction(Transaction trans)
+        public void RemoveTransaction(Operation trans)
         {
             if(transactions.Contains(trans))
                 transactions.Remove(trans);
         }
-
+        /*
         public void RevokeTransaction(Transaction trans)
         {
         }
-
-        public List<Transaction> GetTransactionList()
+        */
+        public List<Operation> GetTransactionList()
         {
             return transactions;
         }
-
-        public override string ToString()
+        
+        public void RecieveSalary()
         {
-            return String.Concat("ID: ", id, ", Name: ", name, ", Money: ", money);
+            money += monthlyIncome;
+        }
+
+        public void AccrualCreditsInterest()
+        {
+            foreach(Operation op in transactions)
+            {
+                if (op.type.Equals("Credit"))
+                {
+                    Credit cr = op as Credit;
+                    cr.AccrualInterest();
+                }
+            }
         }
 
         public static Client GetBankAsClient()
         {
-            return new Client(-1, "Сельхозбанк", 0, false, 0);
+            return new Client(-1, "Сельхозбанк", 0, false, 0, 0);
         }
     }
 }

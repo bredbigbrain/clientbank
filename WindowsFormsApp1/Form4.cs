@@ -15,6 +15,7 @@ namespace WindowsFormsApp1
         Client client;
         StorageView stV;
         float wantedSumm;
+        int wantedTime;
 
         public Form4(StorageView _stV ,int _id)
         {
@@ -34,7 +35,6 @@ namespace WindowsFormsApp1
         private void button1_Click(object sender, EventArgs e)
         {
             float allowedSumm;
-            int wantedTime;
             if (float.TryParse(textBox1.Text, out wantedSumm) & int.TryParse(textBox2.Text, out wantedTime))
             {
                 string checkResult = StorageView.AllowedCreditSumm(client, 1.5f, wantedTime);
@@ -60,6 +60,11 @@ namespace WindowsFormsApp1
         public float ReturnSumm()
         {
             return wantedSumm;
+        }
+
+        public int ReturnWantedTime()
+        {
+            return wantedTime;
         }
     }
 }

@@ -14,29 +14,36 @@ namespace WindowsFormsApp1
     public partial class Form1 : Form
     {
         StorageView storageV;   //ViewModel базы
-        string[,] transactions; //массив транзакций выбранного клиента
+        string[,] transactions; //массив транзакций выбранного клиента, 2 мерный массив 0 - транзакции, 00 - тип, 01 - имя, 02 - сумма, 03 - id транзакции
         int id; //id выбранного клиента
+        DataGridViewCellEventArgs e1;
 
         enum UI_States: int     //состояния интерфейса
         {
+            BASE_NULL,
+            BASE_INITIALIZED,
             BASE_EMPTY,
-            BASE_INITIALIZED
+            CREDIT_SELECTED,
+            TRANSACTION_SELECTED,
+            OPERATION_NOT_SELECTED
         }
 
         public Form1()
         {
             InitializeComponent();
-            UpdateUI(UI_States.BASE_EMPTY);
+            UpdateUI(UI_States.BASE_NULL);
         }
 
         private void Form1_Load(object sender, EventArgs e) 
         {
             storageV = new StorageView();
+            e1 = null;
         }
 
         void UpdateClientsSheets()  //обновить таблицу клиентов
         {
             dataGridView1.Rows.Clear();
+            label4.Text = storageV.GetDate().ToString();
             foreach (Client cl in storageV.GetClients())
             {
                 dataGridView1.Rows.Add(cl.id, cl.name, cl.GetMoney());
@@ -46,8 +53,9 @@ namespace WindowsFormsApp1
         void UpdateTransactionsSheet(DataGridViewCellEventArgs e)   //обновить таблицу транзакций
         {
             dataGridView2.Rows.Clear();
+            e1 = e;
 
-            if (e != null)
+            if (e1 != null)
             {
                 if (int.TryParse(dataGridView1[0, e.RowIndex].Value.ToString(), out id))
                     if (storageV.GetClientsTransactions(id) != null)
@@ -58,7 +66,13 @@ namespace WindowsFormsApp1
                         {
                             dataGridView2.Rows.Add(transactions[i, 0], transactions[i, 1], transactions[i, 2]);
                         }
+
+                        OperationtDetermination();
                     }
+            }
+            else
+            {
+                UpdateUI(UI_States.OPERATION_NOT_SELECTED);
             }
         }   
 
@@ -73,6 +87,11 @@ namespace WindowsFormsApp1
             try
             {
                 storageV.OpenBaseFile(file_name);
+
+                if (storageV.GetClients() == null)
+                    UpdateUI(UI_States.BASE_EMPTY);
+                else
+                    UpdateUI(UI_States.BASE_INITIALIZED);
             }
             catch (Exception ex)
             {
@@ -80,8 +99,8 @@ namespace WindowsFormsApp1
                 storageV.ClearClientsList();
             }
 
-            UpdateUI(UI_States.BASE_INITIALIZED);
             UpdateClientsSheets();
+            UpdateTransactionsSheet(e1);
         }   
 
         private void сохранитьToolStripMenuItem_Click(object sender, EventArgs e)   //сохранить
@@ -98,6 +117,7 @@ namespace WindowsFormsApp1
 
         private void новаяБазаToolStripMenuItem_Click_1(object sender, EventArgs e) //новая база
         {
+            e1 = null;
             SaveFileDialog save = new SaveFileDialog();
             save.Title = "Create XML file";
             save.Filter = "xml files (*.xml)|*.xml";
@@ -107,9 +127,9 @@ namespace WindowsFormsApp1
 
             storageV.CreateNewBase(file_name);
 
-            UpdateUI(UI_States.BASE_INITIALIZED);
+            UpdateUI(UI_States.BASE_EMPTY);
             UpdateClientsSheets();
-            UpdateTransactionsSheet(null);
+            UpdateTransactionsSheet(e1);
         }       
 
         private void сохранитьКакToolStripMenuItem_Click(object sender, EventArgs e)    //сохранить как...
@@ -148,7 +168,11 @@ namespace WindowsFormsApp1
                         prevConvict = true;
                     }
                     storageV.AddClient(form2.ReturnData()[0], float.Parse(form2.ReturnData()[1]), prevConvict, float.Parse(form2.ReturnData()[3]));
+
+                    UpdateUI(UI_States.BASE_INITIALIZED);
+
                     UpdateClientsSheets();
+                    UpdateTransactionsSheet(e1);
                 }
             }
             catch (Exception ex)
@@ -161,8 +185,15 @@ namespace WindowsFormsApp1
         {
             try
             {
+                e1 = null;
+                transactions = null;
+
                 storageV.ClearClientsList();
+
                 UpdateClientsSheets();
+                UpdateTransactionsSheet(e1);
+
+                UpdateUI(UI_States.BASE_EMPTY);
             }
             catch (Exception ex)
             {
@@ -183,7 +214,7 @@ namespace WindowsFormsApp1
                 }
 
                 UpdateClientsSheets();
-                UpdateTransactionsSheet(null);
+                UpdateTransactionsSheet(e1);
             }
             catch (Exception ex)
             {
@@ -209,8 +240,8 @@ namespace WindowsFormsApp1
                 string cellValue = dataGridView1.Rows[rowIdex].Cells[0].Value.ToString();
 
                 int clientID = int.Parse(cellValue);
-                long transID = long.Parse(transactions[dataGridView1.CurrentCell.RowIndex, 3]);
-                storageV.RevokeTransaction(clientID, transID);
+                long transID = long.Parse(transactions[dataGridView2.CurrentCell.RowIndex, 3]);
+                Storage.RevokeTransaction(clientID, transID);
             }
             catch (Exception ex)
             {
@@ -218,7 +249,7 @@ namespace WindowsFormsApp1
             }
 
             UpdateClientsSheets();
-            UpdateTransactionsSheet(null);
+            UpdateTransactionsSheet(e1);
         }
 
         private void button8_Click(object sender, EventArgs e)  //кредит
@@ -235,7 +266,7 @@ namespace WindowsFormsApp1
                     if (form4.DialogResult == DialogResult.OK)
                     {
                         Client cl = form4.ReturnClient();
-                        storageV.Credit(cl, form4.ReturnSumm());
+                        storageV.Credit(cl, form4.ReturnSumm(), form4.ReturnWantedTime());
                     }
                 }
                 else
@@ -243,7 +274,7 @@ namespace WindowsFormsApp1
                     MessageBox.Show(checkResult, "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 }
                 UpdateClientsSheets();
-                UpdateTransactionsSheet(null);
+                UpdateTransactionsSheet(e1);
             }
             catch (Exception ex)
             {
@@ -255,7 +286,7 @@ namespace WindowsFormsApp1
         {
             switch (state)
             {
-                case UI_States.BASE_EMPTY:
+                case UI_States.BASE_NULL:
                     {
                         button1.Enabled = false;
                         button2.Enabled = false;
@@ -283,14 +314,104 @@ namespace WindowsFormsApp1
                         button4.Enabled = true;
                         button6.Enabled = true;
                         button8.Enabled = true;
+                        button11.Enabled = true;
 
                         ToolStripMenuItem fileItem = menuStrip1.Items[0] as ToolStripMenuItem;
                         fileItem.DropDownItems[1].Enabled = true;
                         fileItem.DropDownItems[2].Enabled = true;
                         break;
                     }
+                case UI_States.BASE_EMPTY:
+                    {
+                        button1.Enabled = true;
+                        button2.Enabled = false;
+                        button3.Enabled = false;
+                        button4.Enabled = false;
+                        button5.Enabled = false;
+                        button6.Enabled = false;
+                        button7.Enabled = false;
+                        button8.Enabled = false;
+                        button9.Enabled = false;
+                        button10.Enabled = false;
+                        button11.Enabled = false;
+                        button12.Enabled = false;
+                        break;
+                    }
+                case UI_States.OPERATION_NOT_SELECTED:
+                    {
+                        button6.Enabled = false;
+                        button7.Enabled = false;
+                        break;
+                    }
+                case UI_States.CREDIT_SELECTED:
+                    {
+                        button6.Enabled = false;
+                        button7.Enabled = true;
+                        break;
+                    }
+                case UI_States.TRANSACTION_SELECTED:
+                    {
+                        button6.Enabled = true;
+                        button7.Enabled = false;
+                        break;
+                    }
             }
                 
         }
+
+        private void button11_Click(object sender, EventArgs e) //следующий месяц
+        {
+            label4.Text = storageV.NextMonth().ToString();
+
+            UpdateClientsSheets();
+            UpdateTransactionsSheet(e1);
+        }
+
+        private void dataGridView2_CellEnter(object sender, DataGridViewCellEventArgs e)    //выбор операции в таблице
+        {
+            OperationtDetermination();
+        }
+
+        private void OperationtDetermination()  //определение типа выбранной операции из таблицы операций
+        {
+            if (dataGridView2.CurrentCell != null)
+            {
+                if (transactions[dataGridView2.CurrentCell.RowIndex, 1].Equals(Client.GetBankAsClient().name))
+                {
+                    UpdateUI(UI_States.CREDIT_SELECTED);
+                }
+                else
+                {
+                    UpdateUI(UI_States.TRANSACTION_SELECTED);
+                }
+            }
+        }
+
+        private void button7_Click(object sender, EventArgs e)  //платеж по кредиту
+        {
+            try
+            {
+                int rowIdex = dataGridView1.CurrentCell.RowIndex;
+                string cellValue = dataGridView1.Rows[rowIdex].Cells[0].Value.ToString();
+
+                int clientID = int.Parse(cellValue);
+                long creditID = long.Parse(transactions[dataGridView1.CurrentCell.RowIndex, 3]);
+
+                CreditPayment_Form form = new CreditPayment_Form(clientID, creditID);
+
+                form.ShowDialog();
+                if (form.DialogResult == DialogResult.OK)
+                {
+                    UpdateClientsSheets();
+                    UpdateTransactionsSheet(e1);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Revoke Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+        }
+
+        
     }
 }

@@ -12,11 +12,19 @@ namespace WindowsFormsApp1
         private static List<Client> clients;
         private long transId;
         private int clientId;
+        private int date;
+
 
         public Storage()
         {
             clients = new List<Client>();
             transId = 0;
+            date = 0;
+        }
+
+        public int GetDate()
+        {
+            return date;
         }
 
         public Storage(string path)
@@ -36,9 +44,13 @@ namespace WindowsFormsApp1
                 {
                     int.TryParse(Node.InnerText, out clientId);
                 }
+                else if (Node.Name.Equals("Date"))
+                {
+                    int.TryParse(Node.InnerText, out date);
+                }
                 else if (Node.Name.Equals("Client"))
                 {
-                    int id;
+                    int id, delayMonths;
                     string name;
                     float money;
                     bool prevC;
@@ -49,34 +61,53 @@ namespace WindowsFormsApp1
                     float.TryParse(Node.ChildNodes.Item(2).InnerText, out money);
                     bool.TryParse(Node.ChildNodes.Item(3).InnerText, out prevC);
                     float.TryParse(Node.ChildNodes.Item(4).InnerText, out income);
+                    int.TryParse(Node.ChildNodes.Item(5).InnerText, out delayMonths);
 
-                    ReadClient(id, name, money, prevC, income);
+                    ReadClient(id, name, money, prevC, income, delayMonths);
                 }
             }
 
             foreach (XmlNode clientNode in Doc.DocumentElement.ChildNodes)
             {
-                if (clientNode.Name.Equals("Client") & clientNode.ChildNodes.Count == 6)
-                    foreach (XmlNode transactNode in clientNode.ChildNodes.Item(5))
+                if (clientNode.Name.Equals("Client") & clientNode.ChildNodes.Count == 7)
+                    foreach (XmlNode transactNode in clientNode.ChildNodes.Item(6))
                     {
                         long id;
-                        int senderId;
-                        int recipientId;
+                        int senderId, recipientId, time;
                         float value;
 
                         long.TryParse(transactNode.ChildNodes.Item(0).InnerText, out id);
                         int.TryParse(transactNode.ChildNodes.Item(1).InnerText, out senderId);
                         int.TryParse(transactNode.ChildNodes.Item(2).InnerText, out recipientId);
                         float.TryParse(transactNode.ChildNodes.Item(3).InnerText, out value);
+                        int.TryParse(transactNode.ChildNodes.Item(4).InnerText, out time);
 
-                        Transaction trans = new Transaction(id, senderId, recipientId, value);
+                        Operation op;
+
+                        if (senderId == -1)
+                            op = new Credit(id, senderId, recipientId, value, time);
+                        else
+                            op = new Transaction(id, senderId, recipientId, value);
                     }
             }
         }
 
-        private void ReadClient(int id, string _name, float _money, bool _prevC, float _income)
+        public int NextMonth()
         {
-            clients.Add(new Client(id, _name, _money, _prevC, _income));
+            date++;
+
+            foreach(Client cl in clients)
+            {
+                cl.RecieveSalary();
+                cl.AccrualCreditsInterest();
+            }
+
+            return date;
+        }
+
+        private void ReadClient(int id, string _name, float _money, bool _prevC, float _income, int delayMonths)
+        {
+            clients.Add(new Client(id, _name, _money, _prevC, _income, delayMonths));
         }
 
         public void AddCient(string _name, float _money, bool _prevC, float _income)
@@ -89,7 +120,7 @@ namespace WindowsFormsApp1
                 }
             }
 
-            clients.Add(new Client(clientId, _name, _money, _prevC, _income));
+            clients.Add(new Client(clientId, _name, _money, _prevC, _income, 0));
             clientId++;
         }
         /*
@@ -153,20 +184,20 @@ namespace WindowsFormsApp1
             transId++;
         }
 
-        public void Credit(int recipientId, float value)
+        public void Credit(int recipientId, float value, int time)
         {
             foreach(Client cl in clients)
             {
                 if(cl.id == recipientId)
                 {
-                    Transaction trans = new Transaction(cl, value, transId);
+                    Credit trans = new Credit(cl, value, transId, time);
                     return;
                 }
             }
             
         }
 
-        public void RevokeTransaction(int clientId, long transId)
+        public static void RevokeTransaction(int clientId, long transId)
         {
             foreach (Client cl in clients)
             {
@@ -192,7 +223,7 @@ namespace WindowsFormsApp1
             {
                 if (cl.id == id)
                 {
-                    cl.CangeMoney(value);
+                    cl.ChangeMoney(value);
                     return;
                 }
             }
@@ -210,7 +241,7 @@ namespace WindowsFormsApp1
             transId = 0;
             clients.Clear();
         }
-
+        /*
         public void PrintClienByID(int id)
         {
             Console.WriteLine("---------------------------------------------------");
@@ -231,7 +262,7 @@ namespace WindowsFormsApp1
             }
             Console.WriteLine("There is no client with ID: " + id);
         }
-
+        */
         public static Client FindClientByID( int id)
         {
             if (clients != null)
@@ -258,6 +289,7 @@ namespace WindowsFormsApp1
 
             output.WriteElementString("NumberOfTransactions", transId.ToString());
             output.WriteElementString("NumberOfClients", clientId.ToString());
+            output.WriteElementString("Date", date.ToString());
 
             foreach (Client cl in clients)
             {
@@ -268,12 +300,13 @@ namespace WindowsFormsApp1
                 output.WriteElementString("Money", cl.GetMoney().ToString());
                 output.WriteElementString("PrevConvictions", cl.prevConvictions.ToString());
                 output.WriteElementString("MonthlyIncome", cl.monthlyIncome.ToString());
+                output.WriteElementString("DelayMonths", cl.delayMonths.ToString());
 
                 if (cl.GetTransactionList() != null & cl.GetTransactionList().Count > 0)
                 {
-                    List<Transaction> sendedTrans = new List<Transaction>();
+                    List<Operation> sendedTrans = new List<Operation>();
 
-                    foreach (Transaction tr in cl.GetTransactionList())
+                    foreach (Operation tr in cl.GetTransactionList())
                     {
                         if ((tr.sender.id == cl.id) || (tr.sender.id == -1))
                         {
@@ -285,7 +318,7 @@ namespace WindowsFormsApp1
                     {
                         output.WriteStartElement("Transactions");
 
-                        foreach (Transaction tr in sendedTrans)
+                        foreach (Operation tr in sendedTrans)
                         {
                             output.WriteStartElement("TransAct");
 
@@ -293,6 +326,7 @@ namespace WindowsFormsApp1
                             output.WriteElementString("SenderID", tr.sender.id.ToString());
                             output.WriteElementString("RecipientID", tr.recipient.id.ToString());
                             output.WriteElementString("Value", tr.value.ToString());
+                            output.WriteElementString("Time", tr.time.ToString());
 
                             output.WriteEndElement();
                         }

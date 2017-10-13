@@ -34,16 +34,26 @@ namespace WindowsFormsApp1
             storage.Transaction(senderID, recipientID, value);
         }
 
-        public void Credit(Client cl, float value)
+        public int NextMonth() //следующий месяц
         {
-            storage.Credit(cl.id, value);
+            return storage.NextMonth();
         }
 
+        public int GetDate()
+        {
+            return storage.GetDate();
+        }
+
+        public void Credit(Client cl, float value, int time)  //кредит
+        {
+            storage.Credit(cl.id, value, time);
+        }
+        /*
         public void RevokeTransaction(int clientID, long transID)   //отменяет перевод
         {
             storage.RevokeTransaction(clientID, transID);
         }
-
+        */
         public string[,] GetClientsTransactions(int _id)    //возвращает 2 мерный массив 0 - транзакции, 00 - тип, 01 - имя, 02 - сумма, 03 - id транзакции
         {
             if (Storage.FindClientByID(_id).GetTransactionList() != null)
@@ -51,7 +61,7 @@ namespace WindowsFormsApp1
                 string[,] transactions = new string[Storage.FindClientByID(_id).GetTransactionList().Count, 4];
                 int i = 0;
 
-                foreach (Transaction tr in Storage.FindClientByID(_id).GetTransactionList())
+                foreach (Operation tr in Storage.FindClientByID(_id).GetTransactionList())
                 {
                     if (tr.sender.id == _id)
                     {
@@ -99,6 +109,9 @@ namespace WindowsFormsApp1
 
         public static string AllowedCreditSumm(Client cl, float precent, int time)    //доступная сумма кредита
         {
+            if(time <= 0)
+                throw new Exception("Недопустимый срок");
+
             if (cl.prevConvictions)
                 return "Клиент имеет судимость, отказ в кредите";
 
