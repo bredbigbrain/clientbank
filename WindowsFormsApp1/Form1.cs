@@ -257,7 +257,7 @@ namespace WindowsFormsApp1
             try
             {
                 float a;
-                string checkResult = StorageView.AllowedCreditSumm(Storage.FindClientByID(id), 1.5f, 12);
+                string checkResult = storageV.AllowedCreditSumm(Storage.FindClientByID(id), 1.5f, 12);
 
                 if (float.TryParse(checkResult, out a))
                 {

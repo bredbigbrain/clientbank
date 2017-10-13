@@ -27,7 +27,7 @@ namespace WindowsFormsApp1
 
         private void Form4_Load(object sender, EventArgs e)
         {
-            label4.Text = StorageView.AllowedCreditSumm(client, 1.5f, 12);
+            label4.Text = stV.AllowedCreditSumm(client, 1.5f, 12);
             label9.Text = client.name;
             label8.Text = client.GetMoney().ToString();
         }
@@ -37,7 +37,7 @@ namespace WindowsFormsApp1
             float allowedSumm;
             if (float.TryParse(textBox1.Text, out wantedSumm) & int.TryParse(textBox2.Text, out wantedTime))
             {
-                string checkResult = StorageView.AllowedCreditSumm(client, 1.5f, wantedTime);
+                string checkResult = stV.AllowedCreditSumm(client, 1.5f, wantedTime);
                 if (float.TryParse(checkResult, out allowedSumm))
                 {
                     if (allowedSumm >= wantedSumm)

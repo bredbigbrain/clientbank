@@ -107,7 +107,7 @@ namespace WindowsFormsApp1
             path = _path;
         }
 
-        public static string AllowedCreditSumm(Client cl, float precent, int time)    //доступная сумма кредита
+        public string AllowedCreditSumm(Client cl, float precent, int time)    //доступная сумма кредита
         {
             if(time <= 0)
                 throw new Exception("Недопустимый срок");
@@ -118,6 +118,17 @@ namespace WindowsFormsApp1
             float summ = (cl.monthlyIncome - 10000) * time + (((cl.monthlyIncome - 10000) * time) * precent);
             if (summ <= 0)
                 return "У клиента недостаточный доход, отказ в кредите";
+
+            int delaySumm = 0;
+            foreach(Client c in storage.GetClientList())
+            {
+                delaySumm += c.delayMonths;
+            }
+
+            float averageDelay = delaySumm / storage.GetClientList().Count;
+
+            if (cl.delayMonths > averageDelay)
+                return "У клиента плохая кредитная история";
 
             return summ.ToString();
         }
