@@ -312,7 +312,6 @@ namespace WindowsFormsApp1
                         button1.Enabled = true;
                         button3.Enabled = true;
                         button4.Enabled = true;
-                        button6.Enabled = true;
                         button8.Enabled = true;
                         button11.Enabled = true;
 
@@ -395,7 +394,7 @@ namespace WindowsFormsApp1
                 string cellValue = dataGridView1.Rows[rowIdex].Cells[0].Value.ToString();
 
                 int clientID = int.Parse(cellValue);
-                long creditID = long.Parse(transactions[dataGridView1.CurrentCell.RowIndex, 3]);
+                long creditID = long.Parse(transactions[dataGridView2.CurrentCell.RowIndex, 3]);
 
                 CreditPayment_Form form = new CreditPayment_Form(clientID, creditID);
 
@@ -408,7 +407,7 @@ namespace WindowsFormsApp1
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message, "Revoke Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(ex.Message, "Payment Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
 

@@ -141,13 +141,11 @@ namespace WindowsFormsApp1
         {
             if (recipientId == senderId)
             {
-                Console.WriteLine("IDs is equal");
-                return;
+                throw new Exception("IDs is equal");
             }
             if (value <= 0)
             {
-                Console.WriteLine("Value is <= 0");
-                return;
+                throw new Exception("Value is <= 0");
             }
 
             Client sender = null;
@@ -160,8 +158,7 @@ namespace WindowsFormsApp1
                     sender = cl;
                     if (sender.GetMoney() < value)
                     {
-                        Console.WriteLine("Sender has not enough money: " + sender.GetMoney());
-                        return;
+                        throw new Exception("Sender has not enough money: " + sender.GetMoney());
                     }
                 }
                 if (cl.id == recipientId)
@@ -171,13 +168,11 @@ namespace WindowsFormsApp1
             }
             if (sender == null)
             {
-                Console.WriteLine("There is no client with ID: " + senderId);
-                return;
+                throw new Exception("There is no client with ID: " + senderId);
             }
             if (recipient == null)
             {
-                Console.WriteLine("There is no client with ID: " + recipientId);
-                return;
+                throw new Exception("There is no client with ID: " + recipientId);
             }
 
             Transaction trans = new Transaction(sender, recipient, value, transId);
@@ -191,10 +186,10 @@ namespace WindowsFormsApp1
                 if(cl.id == recipientId)
                 {
                     Credit trans = new Credit(cl, value, transId, time);
+                    transId++;
                     return;
                 }
             }
-            
         }
 
         public static void RevokeTransaction(int clientId, long transId)
@@ -227,7 +222,6 @@ namespace WindowsFormsApp1
                     return;
                 }
             }
-            Console.WriteLine("There is no client with ID: " + id);
         }
 
         public List<Client> GetClientList()

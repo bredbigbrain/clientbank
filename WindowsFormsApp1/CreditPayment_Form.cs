@@ -31,13 +31,13 @@ namespace WindowsFormsApp1
             label2.Text = client.name;
             label3.Text = client.GetMoney().ToString();
 
-            foreach (Credit cr in client.GetTransactionList())
+            foreach (Operation cr in client.GetTransactionList())
             {
                 if(cr.id == creditID)
                 {
                     label5.Text = cr.value.ToString();
                     label7.Text = cr.time.ToString();
-                    credit = cr;
+                    credit = cr as Credit;
                 }
             }
         }
@@ -50,6 +50,10 @@ namespace WindowsFormsApp1
             {
                 credit.MakePayment(value);
                 DialogResult = DialogResult.OK;
+            }
+            else
+            {
+                MessageBox.Show("Incorrect value", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
     }

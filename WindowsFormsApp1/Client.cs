@@ -8,11 +8,11 @@ namespace WindowsFormsApp1
 {
     public class Client
     {
-        public int id { get; }
-        public string name { get; }
+        public int id { get; private set; }
+        public string name { get; private set; }
         private float money;
-        public bool prevConvictions { get; }
-        public float monthlyIncome { get; }
+        public bool prevConvictions { get; private set; }
+        public float monthlyIncome { get; private set; }
         public int delayMonths { get; set; }
 
 

@@ -8,11 +8,11 @@ namespace WindowsFormsApp1
 {
     public abstract class Operation
     {
-        public long id { get; set; }
-        public Client sender { get; set; }
-        public Client recipient { get; set; }
-        public float value { get; set; }
-        public string type { get; set; }
-        public int time{ get; set; }
+        public long id { get; protected set; }
+        public Client sender { get; protected set; }
+        public Client recipient { get; protected set; }
+        public float value { get; protected set; }
+        public string type { get; protected set; }
+        public int time{ get; protected set; }
     }
 }

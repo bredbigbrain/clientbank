@@ -71,10 +71,14 @@ namespace WindowsFormsApp1
             {
                 recipient.RemoveTransaction(this);                
             }
-            if(value < 0)
+            else if(value < 0)
             {
                 recipient.RemoveTransaction(this);
                 recipient.ChangeMoney(-value);
+            }
+            else
+            {
+                recipient.ChangeMoney(-payment);
             }
         }
     }
