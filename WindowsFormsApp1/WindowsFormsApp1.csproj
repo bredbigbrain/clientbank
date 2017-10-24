@@ -45,6 +45,13 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AssistantForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="AssistantForm.Designer.cs">
+      <DependentUpon>AssistantForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Bot_Assistant.cs" />
     <Compile Include="Client.cs" />
     <Compile Include="Credit.cs" />
     <Compile Include="CreditPayment_Form.cs">
@@ -83,6 +90,9 @@
     <Compile Include="Storage.cs" />
     <Compile Include="StorageView.cs" />
     <Compile Include="Transaction.cs" />
+    <EmbeddedResource Include="AssistantForm.resx">
+      <DependentUpon>AssistantForm.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="CreditPayment_Form.resx">
       <DependentUpon>CreditPayment_Form.cs</DependentUpon>
     </EmbeddedResource>

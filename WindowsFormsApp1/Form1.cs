@@ -299,7 +299,7 @@ namespace WindowsFormsApp1
                         button9.Enabled = false;
                         button10.Enabled = false;
                         button11.Enabled = false;
-                        button12.Enabled = false;
+                        button12.Enabled = true;
 
                         ToolStripMenuItem fileItem = menuStrip1.Items[0] as ToolStripMenuItem;
                         fileItem.DropDownItems[1].Enabled = false;
@@ -314,6 +314,7 @@ namespace WindowsFormsApp1
                         button4.Enabled = true;
                         button8.Enabled = true;
                         button11.Enabled = true;
+                        button12.Enabled = true;
 
                         ToolStripMenuItem fileItem = menuStrip1.Items[0] as ToolStripMenuItem;
                         fileItem.DropDownItems[1].Enabled = true;
@@ -333,7 +334,7 @@ namespace WindowsFormsApp1
                         button9.Enabled = false;
                         button10.Enabled = false;
                         button11.Enabled = false;
-                        button12.Enabled = false;
+                        button12.Enabled = true;
                         break;
                     }
                 case UI_States.OPERATION_NOT_SELECTED:
@@ -411,6 +412,18 @@ namespace WindowsFormsApp1
             }
         }
 
-        
+        private void button12_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                AssistantForm form = new AssistantForm();
+                
+                form.Show();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+        }
     }
 }
