@@ -67,6 +67,7 @@ namespace WindowsFormsApp1
                 {
                     return "Уж получше чем у тебя, кожанный мешок!";
                 }
+                return "Каком к верху";
             }
 
             return "Я чот вас не понял";
