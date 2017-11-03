@@ -17,7 +17,7 @@ namespace WindowsFormsApp1
         public AssistantForm()
         {
             InitializeComponent();
-            bot = new Bot_Assistant();
+            bot = new Bot_Assistant("QuestionsData.txt");
         }
 
         private void button10_Click(object sender, EventArgs e)
@@ -38,6 +38,11 @@ namespace WindowsFormsApp1
             {
                 button10_Click(sender, e);
             }
+        }
+
+        private void AssistantForm_Load(object sender, EventArgs e)
+        {
+
         }
     }
 }

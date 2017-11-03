@@ -41,7 +41,7 @@
             // pictureBox1
             // 
             this.pictureBox1.Image = ((System.Drawing.Image)(resources.GetObject("pictureBox1.Image")));
-            this.pictureBox1.Location = new System.Drawing.Point(183, 42);
+            this.pictureBox1.Location = new System.Drawing.Point(387, 44);
             this.pictureBox1.Name = "pictureBox1";
             this.pictureBox1.Size = new System.Drawing.Size(171, 42);
             this.pictureBox1.TabIndex = 31;
@@ -49,7 +49,7 @@
             // 
             // button10
             // 
-            this.button10.Location = new System.Drawing.Point(206, 141);
+            this.button10.Location = new System.Drawing.Point(410, 143);
             this.button10.Name = "button10";
             this.button10.Size = new System.Drawing.Size(122, 31);
             this.button10.TabIndex = 30;
@@ -90,7 +90,7 @@
             // 
             this.textBox1.Location = new System.Drawing.Point(17, 117);
             this.textBox1.Name = "textBox1";
-            this.textBox1.Size = new System.Drawing.Size(500, 20);
+            this.textBox1.Size = new System.Drawing.Size(861, 20);
             this.textBox1.TabIndex = 26;
             this.textBox1.KeyDown += new System.Windows.Forms.KeyEventHandler(this.textBox1_KeyDown);
             // 
@@ -98,7 +98,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(535, 341);
+            this.ClientSize = new System.Drawing.Size(890, 256);
             this.Controls.Add(this.pictureBox1);
             this.Controls.Add(this.button10);
             this.Controls.Add(this.label3);
@@ -107,6 +107,7 @@
             this.Controls.Add(this.textBox1);
             this.Name = "AssistantForm";
             this.Text = "AssistantForm";
+            this.Load += new System.EventHandler(this.AssistantForm_Load);
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();

@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -9,65 +9,36 @@ namespace WindowsFormsApp1
 {
     class Bot_Assistant
     {
+
+        private List<Question> questions;
+
+        public Bot_Assistant(string answersPath)
+        {
+            questions = new List<Question>();
+            StreamReader objReader = new StreamReader(answersPath);
+
+            string[] text_array = File.ReadAllLines(answersPath, Encoding.Default);
+            objReader.Close();
+
+            if (text_array == null)
+                throw new Exception("Empty questions file");
+
+            foreach (string line in text_array)
+            {
+                if (line != null)
+                {
+                    string[] data = line.Split('_');
+                    questions.Add(new Question(data));
+                }
+            }            
+        }
+
         public string Answer(string question)
         {
-            Regex regex = new Regex("Вернуть", RegexOptions.IgnoreCase);   
-            if (regex.IsMatch(question))
+            foreach(Question q in questions)
             {
-                regex = new Regex("кредит", RegexOptions.IgnoreCase);
-                if (regex.IsMatch(question))
-                {
-                    return "Кому это вы дали кредит? \nНо если вы хотите оплатить свой кредит: выберите клиената из списка справа,\n выберите кредит в списке операций, нажмите на кнопку платеж по кредиту.";
-                }
-                else
-                {
-                    regex = new Regex("деньги", RegexOptions.IgnoreCase);
-                    if (regex.IsMatch(question))
-                    {
-                        return "Если вы хотите вернуть посланые кому-то деньги: выберите клиената из списка справа,\n выберите тразакцию, нажмите кнопку отмена транзакции";
-                    }
-                }
-                return "Что вернуть?";
-            }
-
-            regex = new Regex("перевести", RegexOptions.IgnoreCase);
-            if (regex.IsMatch(question))
-            {
-                regex = new Regex("деньги", RegexOptions.IgnoreCase);
-                if (regex.IsMatch(question))
-                {
-                    return "Если вы хотите превести кому-нибудь деньги: нажмите кнопку перевод средств,\n выберите отправителя, выберите получаетля, введите сумму, жмякните кнопку";
-                }
-                return "Кого перевести?";
-            }
-
-
-            regex = new Regex("кредит", RegexOptions.IgnoreCase);
-            if (regex.IsMatch(question))
-            {
-                regex = new Regex("получить", RegexOptions.IgnoreCase);
-                if (regex.IsMatch(question))
-                {
-                    return "Если вы хотите плучить кредит: выберите клиента, введите желаемую сумму и срок\n жмякните кнопку";
-                }
-                regex = new Regex("взять", RegexOptions.IgnoreCase);
-                if (regex.IsMatch(question))
-                {
-                    return "Если вы хотите взять кредит: выберите клиента, введите желаемую сумму и срок\n жмякните кнопку";
-                }
-
-                return "Что что кредит?";
-            }
-
-            regex = new Regex("как", RegexOptions.IgnoreCase);
-            if (regex.IsMatch(question))
-            {
-                regex = new Regex("дела", RegexOptions.IgnoreCase);
-                if (regex.IsMatch(question))
-                {
-                    return "Уж получше чем у тебя, кожанный мешок!";
-                }
-                return "Каком к верху";
+                if (q.Triggered(question))
+                    return q.GetAnswer();
             }
 
             return "Я чот вас не понял";
