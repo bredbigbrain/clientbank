@@ -20,7 +20,7 @@ namespace WindowsFormsApp1
             bot = new Bot_Assistant("QuestionsData.txt");
         }
 
-        private void button10_Click(object sender, EventArgs e)
+        private void button10_Click(object Sender, EventArgs e)
         {
             try
             {
@@ -32,15 +32,15 @@ namespace WindowsFormsApp1
             }
         }
 
-        private void textBox1_KeyDown(object sender, KeyEventArgs e)
+        private void textBox1_KeyDown(object Sender, KeyEventArgs e)
         {
             if (e.KeyCode == Keys.Enter)
             {
-                button10_Click(sender, e);
+                button10_Click(Sender, e);
             }
         }
 
-        private void AssistantForm_Load(object sender, EventArgs e)
+        private void AssistantForm_Load(object Sender, EventArgs e)
         {
 
         }

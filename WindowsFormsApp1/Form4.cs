@@ -25,14 +25,14 @@ namespace WindowsFormsApp1
             client = Storage.FindClientByID(_id);
         }
 
-        private void Form4_Load(object sender, EventArgs e)
+        private void Form4_Load(object Sender, EventArgs e)
         {
             label4.Text = stV.AllowedCreditSumm(client, 1.5f, 12);
             label9.Text = client.name;
             label8.Text = client.GetMoney().ToString();
         }
 
-        private void button1_Click(object sender, EventArgs e)
+        private void button1_Click(object Sender, EventArgs e)
         {
             float allowedSumm;
             if (float.TryParse(textBox1.Text, out wantedSumm) & int.TryParse(textBox2.Text, out wantedTime))

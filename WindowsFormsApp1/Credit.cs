@@ -8,7 +8,7 @@ namespace WindowsFormsApp1
 {
     public class Credit: Operation
     {
-        public Credit(Client _recipient, float _value, long _id, int _time)
+        public Credit(Client _Recipient, float _value, long _id, int _time)
         {
             id = _id;
             type = "Credit";
@@ -20,12 +20,12 @@ namespace WindowsFormsApp1
 
             time = _time;
 
-            sender = Client.GetBankAsClient();
-            recipient = _recipient;
+            Sender = Client.GetBankAsClient();
+            Recipient = _Recipient;
             value = _value;
 
-            recipient.ChangeMoney(value);
-            recipient.AddTransaction(this);
+            Recipient.ChangeMoney(value);
+            Recipient.AddTransaction(this);
         }
 
         public Credit(long _id, int senderId, int recipientId, float _value, int _time)
@@ -34,19 +34,19 @@ namespace WindowsFormsApp1
             type = "Credit";
             time = _time;
 
-            sender = Storage.FindClientByID(senderId);
-            if (sender == null)
+            Sender = Storage.FindClientByID(senderId);
+            if (Sender == null)
             {
                 throw new Exception("Transaction reading fail");
             }
-            sender.AddTransaction(this);
+            Sender.AddTransaction(this);
 
-            recipient = Storage.FindClientByID(recipientId);
-            if (recipient == null)
+            Recipient = Storage.FindClientByID(recipientId);
+            if (Recipient == null)
             {
                 throw new Exception("Transaction reading fail");
             }
-            recipient.AddTransaction(this);
+            Recipient.AddTransaction(this);
 
             value = _value;
         }
@@ -57,7 +57,7 @@ namespace WindowsFormsApp1
             if (time < 0)
             {
                 k = 2;
-                recipient.delayMonths++;
+                Recipient.delayMonths++;
             }
             value = value * (1 + 0.015f * k);
             time--;
@@ -69,16 +69,16 @@ namespace WindowsFormsApp1
 
             if(value == 0)
             {
-                recipient.RemoveTransaction(this);                
+                Recipient.RemoveTransaction(this);                
             }
             else if(value < 0)
             {
-                recipient.RemoveTransaction(this);
-                recipient.ChangeMoney(-value);
+                Recipient.RemoveTransaction(this);
+                Recipient.ChangeMoney(-value);
             }
             else
             {
-                recipient.ChangeMoney(-payment);
+                Recipient.ChangeMoney(-payment);
             }
         }
     }

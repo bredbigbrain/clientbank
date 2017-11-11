@@ -8,21 +8,21 @@ namespace WindowsFormsApp1
 {
     public class Transaction: Operation
     { 
-        public Transaction(Client _sender, Client _recipient, float _value, long _id)
+        public Transaction(Client _Sender, Client _Recipient, float _value, long _id)
         {
             id = _id;
             type = "Transaction";
             time = 0;
 
-            sender = _sender;
-            recipient = _recipient;
+            Sender = _Sender;
+            Recipient = _Recipient;
             value = _value;
 
-            sender.ChangeMoney(-value);
-            sender.AddTransaction(this);
+            Sender.ChangeMoney(-value);
+            Sender.AddTransaction(this);
 
-            recipient.ChangeMoney(value);
-            recipient.AddTransaction(this);
+            Recipient.ChangeMoney(value);
+            Recipient.AddTransaction(this);
         }
 
         public Transaction(long _id, int senderId, int recipientId, float _value)
@@ -31,35 +31,35 @@ namespace WindowsFormsApp1
             type = "Transaction";
             time = 0;
 
-            sender = Storage.FindClientByID(senderId);
-            if(sender == null)
+            Sender = Storage.FindClientByID(senderId);
+            if(Sender == null)
             {
                 throw new Exception("Transaction reading fail");
             }
-            sender.AddTransaction(this);
+            Sender.AddTransaction(this);
 
-            recipient = Storage.FindClientByID(recipientId);
-            if (recipient == null)
+            Recipient = Storage.FindClientByID(recipientId);
+            if (Recipient == null)
             {
                 throw new Exception("Transaction reading fail");
             }
-            recipient.AddTransaction(this);
+            Recipient.AddTransaction(this);
 
             value = _value;
         }
 
         public void Revoke()
         {
-            if (sender != null)
+            if (Sender != null)
             {
-                sender.ChangeMoney(value);
-                sender.RemoveTransaction(this);
+                Sender.ChangeMoney(value);
+                Sender.RemoveTransaction(this);
             }
 
-            if (recipient != null)
+            if (Recipient != null)
             {
-                recipient.ChangeMoney(-value);
-                recipient.RemoveTransaction(this);
+                Recipient.ChangeMoney(-value);
+                Recipient.RemoveTransaction(this);
             }
         }
     }

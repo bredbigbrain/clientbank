@@ -20,12 +20,12 @@ namespace WindowsFormsApp1
             data = new string[4];
         }
 
-        private void label1_Click(object sender, EventArgs e)
+        private void label1_Click(object Sender, EventArgs e)
         {
 
         }
 
-        private void button1_Click(object sender, EventArgs e)
+        private void button1_Click(object Sender, EventArgs e)
         {
             data[0] = textBox1.Text;
             data[1] = textBox2.Text;
@@ -40,12 +40,12 @@ namespace WindowsFormsApp1
             return data;
         }
 
-        private void button2_Click(object sender, EventArgs e)
+        private void button2_Click(object Sender, EventArgs e)
         {
             Close();
         }
 
-        private void Form2_Load(object sender, EventArgs e)
+        private void Form2_Load(object Sender, EventArgs e)
         {
 
         }

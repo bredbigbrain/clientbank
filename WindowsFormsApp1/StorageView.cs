@@ -29,9 +29,9 @@ namespace WindowsFormsApp1
             storage.AddCient(_name, _money, _prevC, _income);
         }   
 
-        public void Transaction(int senderID, int recipientID, float value )    //осуществляет перевод
+        public void Transaction(int senderId, int recipientId, float value )    //осуществляет перевод
         {
-            storage.Transaction(senderID, recipientID, value);
+            storage.Transaction(senderId, recipientId, value);
         }
 
         public int NextMonth() //следующий месяц
@@ -41,7 +41,10 @@ namespace WindowsFormsApp1
 
         public int GetDate()
         {
-            return storage.GetDate();
+            if (storage != null)
+                return storage.GetDate();
+            else
+                throw new Exception("Storage null (GetDate)");
         }
 
         public void Credit(Client cl, float value, int time)  //кредит
@@ -54,6 +57,7 @@ namespace WindowsFormsApp1
             storage.RevokeTransaction(clientID, transID);
         }
         */
+
         public string[,] GetClientsTransactions(int _id)    //возвращает 2 мерный массив 0 - транзакции, 00 - тип, 01 - имя, 02 - сумма, 03 - id транзакции
         {
             if (Storage.FindClientByID(_id).GetTransactionList() != null)
@@ -63,15 +67,15 @@ namespace WindowsFormsApp1
 
                 foreach (Operation tr in Storage.FindClientByID(_id).GetTransactionList())
                 {
-                    if (tr.sender.id == _id)
+                    if (tr.Sender.id == _id)
                     {
                         transactions[i, 0] = "Отправил";
-                        transactions[i, 1] = Storage.FindClientByID(tr.recipient.id).name;
+                        transactions[i, 1] = Storage.FindClientByID(tr.Recipient.id).name;
                     }
                     else
                     {
                         transactions[i, 0] = "Получил от";
-                        transactions[i, 1] = Storage.FindClientByID(tr.sender.id).name;
+                        transactions[i, 1] = Storage.FindClientByID(tr.Sender.id).name;
                     }
 
                     transactions[i, 2] = tr.value.ToString();

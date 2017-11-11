@@ -24,7 +24,7 @@ namespace WindowsFormsApp1
             creditID = crID;
         }
 
-        private void CreditPayment_Form_Load(object sender, EventArgs e)
+        private void CreditPayment_Form_Load(object Sender, EventArgs e)
         {
             
             client = Storage.FindClientByID(clientID);
@@ -42,7 +42,7 @@ namespace WindowsFormsApp1
             }
         }
 
-        private void button9_Click(object sender, EventArgs e)
+        private void button9_Click(object Sender, EventArgs e)
         {
             float value;
 

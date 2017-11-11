@@ -100,6 +100,7 @@ namespace WindowsFormsApp1
             {
                 cl.RecieveSalary();
                 cl.AccrualCreditsInterest();
+                cl.AnaliseTransactions();
             }
 
             return date;
@@ -123,20 +124,7 @@ namespace WindowsFormsApp1
             clients.Add(new Client(clientId, _name, _money, _prevC, _income, 0));
             clientId++;
         }
-        /*
-        public void RemoveCientByID(int _id)
-        {
-            foreach (Client cl in clients)
-            {
-                if (cl.id == _id)
-                {
-                    clients.Remove(cl);
-                    return;
-                }
-            }
-            Console.WriteLine("There is no client with ID: " + _id);
-        }
-        */
+
         public void Transaction(int senderId, int recipientId, float value)
         {
             if (recipientId == senderId)
@@ -158,7 +146,7 @@ namespace WindowsFormsApp1
                     sender = cl;
                     if (sender.GetMoney() < value)
                     {
-                        throw new Exception("Sender has not enough money: " + sender.GetMoney());
+                        throw new Exception("sender has not enough money: " + sender.GetMoney());
                     }
                 }
                 if (cl.id == recipientId)
@@ -235,28 +223,7 @@ namespace WindowsFormsApp1
             transId = 0;
             clients.Clear();
         }
-        /*
-        public void PrintClienByID(int id)
-        {
-            Console.WriteLine("---------------------------------------------------");
-            foreach (Client cl in clients)
-            {
-                if (cl.id == id)
-                {
-                    Console.WriteLine(cl.ToString());
 
-                    List<Transaction> tr = cl.GetTransactionList();
-                    foreach(Transaction t in tr)
-                    {
-                        Console.WriteLine(t.ToString());
-                    }
-
-                    return;
-                }
-            }
-            Console.WriteLine("There is no client with ID: " + id);
-        }
-        */
         public static Client FindClientByID( int id)
         {
             if (clients != null)
@@ -302,7 +269,7 @@ namespace WindowsFormsApp1
 
                     foreach (Operation tr in cl.GetTransactionList())
                     {
-                        if ((tr.sender.id == cl.id) || (tr.sender.id == -1))
+                        if ((tr.Sender.id == cl.id) || (tr.Sender.id == -1))
                         {
                             sendedTrans.Add(tr);
                         }
@@ -317,8 +284,8 @@ namespace WindowsFormsApp1
                             output.WriteStartElement("TransAct");
 
                             output.WriteElementString("ID", tr.id.ToString());
-                            output.WriteElementString("SenderID", tr.sender.id.ToString());
-                            output.WriteElementString("RecipientID", tr.recipient.id.ToString());
+                            output.WriteElementString("senderId", tr.Sender.id.ToString());
+                            output.WriteElementString("recipientId", tr.Recipient.id.ToString());
                             output.WriteElementString("Value", tr.value.ToString());
                             output.WriteElementString("Time", tr.time.ToString());
 

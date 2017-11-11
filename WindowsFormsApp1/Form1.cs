@@ -25,7 +25,9 @@ namespace WindowsFormsApp1
             BASE_EMPTY,
             CREDIT_SELECTED,
             TRANSACTION_SELECTED,
-            OPERATION_NOT_SELECTED
+            OPERATION_NOT_SELECTED,
+            NOTIFICATION_TRUE,
+            NOTIFICATION_FALSE
         }
 
         public Form1()
@@ -34,7 +36,7 @@ namespace WindowsFormsApp1
             UpdateUI(UI_States.BASE_NULL);
         }
 
-        private void Form1_Load(object sender, EventArgs e) 
+        private void Form1_Load(object Sender, EventArgs e) 
         {
             storageV = new StorageView();
             e1 = null;
@@ -42,41 +44,60 @@ namespace WindowsFormsApp1
 
         void UpdateClientsSheets()  //обновить таблицу клиентов
         {
-            dataGridView1.Rows.Clear();
-            label4.Text = storageV.GetDate().ToString();
-            foreach (Client cl in storageV.GetClients())
+            try
             {
-                dataGridView1.Rows.Add(cl.id, cl.name, cl.GetMoney());
+
+                dataGridView1.Rows.Clear();
+                label4.Text = storageV.GetDate().ToString();
+                foreach (Client cl in storageV.GetClients())
+                {
+                    bool notif = cl.CheckRecipients.Count != 0;
+                    CheckState state;
+                    state = notif ? CheckState.Checked : CheckState.Unchecked;
+
+                    dataGridView1.Rows.Add(cl.id, cl.name, cl.GetMoney(), state);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }   
 
         void UpdateTransactionsSheet(DataGridViewCellEventArgs e)   //обновить таблицу транзакций
         {
-            dataGridView2.Rows.Clear();
-            e1 = e;
-
-            if (e1 != null)
+            try
             {
-                if (int.TryParse(dataGridView1[0, e.RowIndex].Value.ToString(), out id))
-                    if (storageV.GetClientsTransactions(id) != null)
-                    {
-                        transactions = storageV.GetClientsTransactions(id);
+                dataGridView2.Rows.Clear();
+                e1 = e;
 
-                        for (int i = 0; i < transactions.GetLength(0); i++)
+                if (e1 != null)
+                {
+                    if (int.TryParse(dataGridView1[0, e.RowIndex].Value.ToString(), out id))
+                        if (storageV.GetClientsTransactions(id) != null)
                         {
-                            dataGridView2.Rows.Add(transactions[i, 0], transactions[i, 1], transactions[i, 2]);
-                        }
+                            transactions = storageV.GetClientsTransactions(id);
 
-                        OperationtDetermination();
-                    }
+                            for (int i = 0; i < transactions.GetLength(0); i++)
+                            {
+                                dataGridView2.Rows.Add(transactions[i, 0], transactions[i, 1], transactions[i, 2]);
+                            }
+
+                            OperationtDetermination();
+                        }
+                }
+                else
+                {
+                    UpdateUI(UI_States.OPERATION_NOT_SELECTED);
+                }
             }
-            else
+            catch (Exception ex)
             {
-                UpdateUI(UI_States.OPERATION_NOT_SELECTED);
+                MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }   
 
-        private void открытьToolStripMenuItem_Click(object sender, EventArgs e) //открыть
+        private void открытьToolStripMenuItem_Click(object Sender, EventArgs e) //открыть
         {
             OpenFileDialog dialog = new OpenFileDialog();
             dialog.Filter = "xml files (*.xml)|*.xml";
@@ -103,7 +124,7 @@ namespace WindowsFormsApp1
             UpdateTransactionsSheet(e1);
         }   
 
-        private void сохранитьToolStripMenuItem_Click(object sender, EventArgs e)   //сохранить
+        private void сохранитьToolStripMenuItem_Click(object Sender, EventArgs e)   //сохранить
         {
             try
             {
@@ -115,7 +136,7 @@ namespace WindowsFormsApp1
             }
         }   
 
-        private void новаяБазаToolStripMenuItem_Click_1(object sender, EventArgs e) //новая база
+        private void новаяБазаToolStripMenuItem_Click_1(object Sender, EventArgs e) //новая база
         {
             e1 = null;
             SaveFileDialog save = new SaveFileDialog();
@@ -132,7 +153,7 @@ namespace WindowsFormsApp1
             UpdateTransactionsSheet(e1);
         }       
 
-        private void сохранитьКакToolStripMenuItem_Click(object sender, EventArgs e)    //сохранить как...
+        private void сохранитьКакToolStripMenuItem_Click(object Sender, EventArgs e)    //сохранить как...
         {
             SaveFileDialog save = new SaveFileDialog();
             save.Filter = "xml files (*.xml)|*.xml";
@@ -150,7 +171,7 @@ namespace WindowsFormsApp1
             }
         }   
 
-        private void button1_Click(object sender, EventArgs e)  //добавить клиента
+        private void button1_Click(object Sender, EventArgs e)  //добавить клиента
         {
             try
             {
@@ -181,7 +202,7 @@ namespace WindowsFormsApp1
             }
         }   
 
-        private void button3_Click(object sender, EventArgs e)  //удалить всех
+        private void button3_Click(object Sender, EventArgs e)  //удалить всех
         {
             try
             {
@@ -201,7 +222,7 @@ namespace WindowsFormsApp1
             }
         }
 
-        private void button4_Click(object sender, EventArgs e)  //перевод средств
+        private void button4_Click(object Sender, EventArgs e)  //перевод средств
         {
             try
             {
@@ -222,17 +243,26 @@ namespace WindowsFormsApp1
             }
         }
 
-        private void button2_Click(object sender, EventArgs e)  //удаление клиента
+        private void button2_Click(object Sender, EventArgs e)  //удаление клиента
         {
 
         }
 
-        private void dataGridView1_CellEnter(object sender, DataGridViewCellEventArgs e)    //выбор клиента в таблице
+        private void dataGridView1_CellEnter(object Sender, DataGridViewCellEventArgs e)    //выбор клиента в таблице
         {
             UpdateTransactionsSheet(e);
+            
+            if(dataGridView1[3, e.RowIndex].Value.Equals(CheckState.Checked))
+            {
+                UpdateUI(UI_States.NOTIFICATION_TRUE);
+            }
+            else
+            {
+                UpdateUI(UI_States.NOTIFICATION_FALSE);
+            }
         }
 
-        private void button6_Click(object sender, EventArgs e)  //отмена транзакции
+        private void button6_Click(object Sender, EventArgs e)  //отмена транзакции
         {
             try
             {
@@ -252,7 +282,7 @@ namespace WindowsFormsApp1
             UpdateTransactionsSheet(e1);
         }
 
-        private void button8_Click(object sender, EventArgs e)  //кредит
+        private void button8_Click(object Sender, EventArgs e)  //кредит
         {
             try
             {
@@ -313,6 +343,7 @@ namespace WindowsFormsApp1
                         button3.Enabled = true;
                         button4.Enabled = true;
                         button8.Enabled = true;
+                        button10.Enabled = false;
                         button11.Enabled = true;
                         button12.Enabled = true;
 
@@ -355,11 +386,21 @@ namespace WindowsFormsApp1
                         button7.Enabled = false;
                         break;
                     }
+                case UI_States.NOTIFICATION_TRUE:
+                    {
+                        button10.Enabled = true;
+                        break;
+                    }
+                case UI_States.NOTIFICATION_FALSE:
+                    {
+                        button10.Enabled = false;
+                        break;
+                    }
             }
                 
         }
 
-        private void button11_Click(object sender, EventArgs e) //следующий месяц
+        private void button11_Click(object Sender, EventArgs e) //следующий месяц
         {
             label4.Text = storageV.NextMonth().ToString();
 
@@ -367,7 +408,7 @@ namespace WindowsFormsApp1
             UpdateTransactionsSheet(e1);
         }
 
-        private void dataGridView2_CellEnter(object sender, DataGridViewCellEventArgs e)    //выбор операции в таблице
+        private void dataGridView2_CellEnter(object Sender, DataGridViewCellEventArgs e)    //выбор операции в таблице
         {
             OperationtDetermination();
         }
@@ -387,7 +428,7 @@ namespace WindowsFormsApp1
             }
         }
 
-        private void button7_Click(object sender, EventArgs e)  //платеж по кредиту
+        private void button7_Click(object Sender, EventArgs e)  //платеж по кредиту
         {
             try
             {
@@ -412,13 +453,45 @@ namespace WindowsFormsApp1
             }
         }
 
-        private void button12_Click(object sender, EventArgs e)
+        private void button12_Click(object Sender, EventArgs e)
         {
             try
             {
                 AssistantForm form = new AssistantForm();
                 
                 form.Show();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+        }
+
+        private void button10_Click(object sender, EventArgs e) //открыть уведомления
+        {
+            try
+            {
+                int clientID = (int)dataGridView1[0, dataGridView1.CurrentCell.RowIndex].Value;
+                Client cl = Storage.FindClientByID(clientID);
+
+                foreach (int recipientID in cl.CheckRecipients)
+                {
+                    TransNotificationForm form = new TransNotificationForm(cl);
+                    form.ShowDialog();
+
+                    if (form.DialogResult == DialogResult.OK)
+                    {
+                        storageV.Transaction(clientID, recipientID, form.ReturnData());
+                        cl.TransactionChecked(recipientID, true);
+
+                        UpdateClientsSheets();
+                        UpdateTransactionsSheet(e1);
+                    }
+                    else
+                    {
+                        cl.TransactionChecked(recipientID, false);
+                    }
+                }
             }
             catch (Exception ex)
             {

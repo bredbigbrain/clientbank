@@ -14,8 +14,9 @@ namespace WindowsFormsApp1
         public bool prevConvictions { get; private set; }
         public float monthlyIncome { get; private set; }
         public int delayMonths { get; set; }
+        public List<int> CheckRecipients { get; private set; }
 
-
+        private TransactionAnaliser analiserTR;
         private List<Operation> transactions;
 
         public Client(int _id, string _name, float _money, bool _prevC, float _income, int _delayMonths)
@@ -27,6 +28,8 @@ namespace WindowsFormsApp1
             monthlyIncome = _income;
             transactions = new List<Operation>();
             delayMonths = _delayMonths;
+            analiserTR = new TransactionAnaliser(this);
+            CheckRecipients = new List<int>();
         }
 
         public float GetMoney()
@@ -42,12 +45,16 @@ namespace WindowsFormsApp1
         public void AddTransaction(Operation trans)
         {
             transactions.Add(trans);
+            analiserTR.AddTransaction((Transaction)trans);
         }
 
         public void RemoveTransaction(Operation trans)
         {
-            if(transactions.Contains(trans))
+            if (transactions.Contains(trans))
+            {
                 transactions.Remove(trans);
+                analiserTR.RemoveTransaction((Transaction)trans);
+            }
         }
         /*
         public void RevokeTransaction(Transaction trans)
@@ -74,6 +81,20 @@ namespace WindowsFormsApp1
                     cr.AccrualInterest();
                 }
             }
+        }
+
+        public void AnaliseTransactions()
+        {
+            analiserTR.NextMonth();
+            if(analiserTR.CheckRecipients.Count > 0)
+            {
+                CheckRecipients = analiserTR.CheckRecipients;
+            }
+        }
+
+        public void TransactionChecked(int recipientID, bool isCheckCorrect)
+        {
+            analiserTR.SetCheckResult(recipientID, isCheckCorrect);
         }
 
         public static Client GetBankAsClient()

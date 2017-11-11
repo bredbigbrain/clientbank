@@ -31,7 +31,7 @@ namespace WindowsFormsApp1
         }
 
 
-        private void button1_Click(object sender, EventArgs e)
+        private void button1_Click(object Sender, EventArgs e)
         {
             data[0] = storV.GetClients()[comboBox1.SelectedIndex].id.ToString();
             if(comboBox2.SelectedIndex >= comboBox1.SelectedIndex)
@@ -47,7 +47,7 @@ namespace WindowsFormsApp1
             return data;
         }
 
-        private void comboBox1_SelectedIndexChanged(object sender, EventArgs e)
+        private void comboBox1_SelectedIndexChanged(object Sender, EventArgs e)
         {
             comboBox2.Enabled = true;
             comboBox2.Items.Clear();
