@@ -11,7 +11,7 @@ namespace WindowsFormsApp1
         public Credit(Client _Recipient, float _value, long _id, int _time)
         {
             id = _id;
-            type = "Credit";
+            type = OperationTypes.Credit;
 
             if (_time < 0)
                 throw new Exception("Недопустимый срок");
@@ -31,7 +31,7 @@ namespace WindowsFormsApp1
         public Credit(long _id, int senderId, int recipientId, float _value, int _time)
         {
             id = _id;
-            type = "Credit";
+            type = OperationTypes.Credit;
             time = _time;
 
             Sender = Storage.FindClientByID(senderId);
@@ -39,16 +39,17 @@ namespace WindowsFormsApp1
             {
                 throw new Exception("Transaction reading fail");
             }
-            Sender.AddTransaction(this);
 
             Recipient = Storage.FindClientByID(recipientId);
             if (Recipient == null)
             {
                 throw new Exception("Transaction reading fail");
             }
-            Recipient.AddTransaction(this);
 
             value = _value;
+
+            Sender.AddTransaction(this);
+            Recipient.AddTransaction(this);
         }
 
         public void AccrualInterest()
@@ -65,20 +66,20 @@ namespace WindowsFormsApp1
 
         public void MakePayment(float payment)
         {
-            value -= payment;
-
-            if(value == 0)
+            if (payment >= 0)
             {
-                Recipient.RemoveTransaction(this);                
-            }
-            else if(value < 0)
-            {
-                Recipient.RemoveTransaction(this);
-                Recipient.ChangeMoney(-value);
-            }
-            else
-            {
+                value -= payment;
                 Recipient.ChangeMoney(-payment);
+
+                if (value == 0)
+                {
+                    Recipient.RemoveTransaction(this);
+                }
+                else if (value < 0)
+                {
+                    Recipient.RemoveTransaction(this);
+                    Recipient.ChangeMoney(-value);
+                }
             }
         }
     }

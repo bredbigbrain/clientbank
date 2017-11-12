@@ -17,8 +17,11 @@ namespace WindowsFormsApp1
         string[,] transactions; //массив транзакций выбранного клиента, 2 мерный массив 0 - транзакции, 00 - тип, 01 - имя, 02 - сумма, 03 - id транзакции
         int id; //id выбранного клиента
         DataGridViewCellEventArgs e1;
+        private bool isClietnsSheetUpdating;
+        private bool isTransactionsSheetUpdating;
 
-        enum UI_States: int     //состояния интерфейса
+
+        private enum UI_States: int     //состояния интерфейса
         {
             BASE_NULL,
             BASE_INITIALIZED,
@@ -40,13 +43,15 @@ namespace WindowsFormsApp1
         {
             storageV = new StorageView();
             e1 = null;
+            isClietnsSheetUpdating = false;
+            isTransactionsSheetUpdating = false;
         }
 
         void UpdateClientsSheets()  //обновить таблицу клиентов
         {
+            isClietnsSheetUpdating = true;
             try
             {
-
                 dataGridView1.Rows.Clear();
                 label4.Text = storageV.GetDate().ToString();
                 foreach (Client cl in storageV.GetClients())
@@ -60,40 +65,52 @@ namespace WindowsFormsApp1
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(ex.Message + " " + ex.StackTrace, "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
+            isClietnsSheetUpdating = false;
         }   
+
+        void ClearSheets()
+        {
+            dataGridView1.Rows.Clear();
+            dataGridView2.Rows.Clear();
+        }
 
         void UpdateTransactionsSheet(DataGridViewCellEventArgs e)   //обновить таблицу транзакций
         {
-            try
+            if (!isClietnsSheetUpdating)
             {
-                dataGridView2.Rows.Clear();
-                e1 = e;
-
-                if (e1 != null)
+                isTransactionsSheetUpdating = true;
+                try
                 {
-                    if (int.TryParse(dataGridView1[0, e.RowIndex].Value.ToString(), out id))
-                        if (storageV.GetClientsTransactions(id) != null)
-                        {
-                            transactions = storageV.GetClientsTransactions(id);
+                    dataGridView2.Rows.Clear();
+                    e1 = e;
 
-                            for (int i = 0; i < transactions.GetLength(0); i++)
+                    if (e1 != null)
+                    {
+                        if (int.TryParse(dataGridView1[0, e.RowIndex].Value.ToString(), out id))
+                            if (storageV.GetClientsTransactions(id) != null)
                             {
-                                dataGridView2.Rows.Add(transactions[i, 0], transactions[i, 1], transactions[i, 2]);
-                            }
+                                transactions = storageV.GetClientsTransactions(id);
 
-                            OperationtDetermination();
-                        }
+                                for (int i = 0; i < transactions.GetLength(0); i++)
+                                {
+                                    dataGridView2.Rows.Add(transactions[i, 0], transactions[i, 1], transactions[i, 2]);
+                                }
+
+                                OperationtDetermination();
+                            }
+                    }
+                    else
+                    {
+                        UpdateUI(UI_States.OPERATION_NOT_SELECTED);
+                    }
                 }
-                else
+                catch (Exception ex)
                 {
-                    UpdateUI(UI_States.OPERATION_NOT_SELECTED);
+                    MessageBox.Show(ex.Message + " " + ex.StackTrace, "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                isTransactionsSheetUpdating = false;
             }
         }   
 
@@ -113,15 +130,17 @@ namespace WindowsFormsApp1
                     UpdateUI(UI_States.BASE_EMPTY);
                 else
                     UpdateUI(UI_States.BASE_INITIALIZED);
+
+                UpdateClientsSheets();
+                UpdateTransactionsSheet(e1);
             }
             catch (Exception ex)
             {
                 MessageBox.Show(ex.Message, "Open File Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 storageV.ClearClientsList();
+                ClearSheets();
+                UpdateUI(UI_States.BASE_NULL);
             }
-
-            UpdateClientsSheets();
-            UpdateTransactionsSheet(e1);
         }   
 
         private void сохранитьToolStripMenuItem_Click(object Sender, EventArgs e)   //сохранить
@@ -160,7 +179,7 @@ namespace WindowsFormsApp1
             if (save.ShowDialog() != DialogResult.OK)
                 return;
             string file_name = Path.GetFileName(save.FileName);
-
+            
             try
             {
                 storageV.SaveBaseAsXML(file_name);
@@ -218,7 +237,7 @@ namespace WindowsFormsApp1
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(ex.Message + " " + ex.StackTrace, "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
 
@@ -233,14 +252,14 @@ namespace WindowsFormsApp1
                     string[] data = form3.ReturnData();
                     storageV.Transaction(int.Parse(data[0]), int.Parse(data[1]), float.Parse(data[2]));
                 }
-
-                UpdateClientsSheets();
-                UpdateTransactionsSheet(e1);
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(ex.Message + " " + ex.StackTrace, "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
+
+            UpdateClientsSheets();
+            UpdateTransactionsSheet(e1);
         }
 
         private void button2_Click(object Sender, EventArgs e)  //удаление клиента
@@ -275,7 +294,7 @@ namespace WindowsFormsApp1
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message, "Revoke Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(ex.Message + " " + ex.StackTrace, "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
 
             UpdateClientsSheets();
@@ -331,6 +350,9 @@ namespace WindowsFormsApp1
                         button11.Enabled = false;
                         button12.Enabled = true;
 
+                        label3.Visible = false;
+                        label4.Visible = false;
+
                         ToolStripMenuItem fileItem = menuStrip1.Items[0] as ToolStripMenuItem;
                         fileItem.DropDownItems[1].Enabled = false;
                         fileItem.DropDownItems[2].Enabled = false;
@@ -346,6 +368,9 @@ namespace WindowsFormsApp1
                         button10.Enabled = false;
                         button11.Enabled = true;
                         button12.Enabled = true;
+
+                        label3.Visible = true;
+                        label4.Visible = true;
 
                         ToolStripMenuItem fileItem = menuStrip1.Items[0] as ToolStripMenuItem;
                         fileItem.DropDownItems[1].Enabled = true;
@@ -366,6 +391,10 @@ namespace WindowsFormsApp1
                         button10.Enabled = false;
                         button11.Enabled = false;
                         button12.Enabled = true;
+
+                        label3.Visible = true;
+                        label4.Visible = true;
+
                         break;
                     }
                 case UI_States.OPERATION_NOT_SELECTED:
@@ -410,7 +439,10 @@ namespace WindowsFormsApp1
 
         private void dataGridView2_CellEnter(object Sender, DataGridViewCellEventArgs e)    //выбор операции в таблице
         {
-            OperationtDetermination();
+            if (!isTransactionsSheetUpdating)
+            {
+                OperationtDetermination();
+            }
         }
 
         private void OperationtDetermination()  //определение типа выбранной операции из таблицы операций
@@ -449,7 +481,7 @@ namespace WindowsFormsApp1
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message, "Payment Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(ex.Message + " " + ex.StackTrace, "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
 
@@ -463,7 +495,7 @@ namespace WindowsFormsApp1
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(ex.Message + " " + ex.StackTrace, "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
 
@@ -476,7 +508,7 @@ namespace WindowsFormsApp1
 
                 foreach (int recipientID in cl.CheckRecipients)
                 {
-                    TransNotificationForm form = new TransNotificationForm(cl);
+                    TransNotificationForm form = new TransNotificationForm(Storage.FindClientByID(recipientID).name);
                     form.ShowDialog();
 
                     if (form.DialogResult == DialogResult.OK)
@@ -495,7 +527,7 @@ namespace WindowsFormsApp1
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(ex.Message + " " + ex.StackTrace, "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
     }

@@ -11,7 +11,7 @@ namespace WindowsFormsApp1
         public Transaction(Client _Sender, Client _Recipient, float _value, long _id)
         {
             id = _id;
-            type = "Transaction";
+            type = OperationTypes.Transaction;
             time = 0;
 
             Sender = _Sender;
@@ -19,16 +19,16 @@ namespace WindowsFormsApp1
             value = _value;
 
             Sender.ChangeMoney(-value);
-            Sender.AddTransaction(this);
-
             Recipient.ChangeMoney(value);
+
+            Sender.AddTransaction(this);
             Recipient.AddTransaction(this);
         }
 
         public Transaction(long _id, int senderId, int recipientId, float _value)
         {
             id = _id;
-            type = "Transaction";
+            type = OperationTypes.Transaction;
             time = 0;
 
             Sender = Storage.FindClientByID(senderId);
@@ -36,16 +36,17 @@ namespace WindowsFormsApp1
             {
                 throw new Exception("Transaction reading fail");
             }
-            Sender.AddTransaction(this);
 
             Recipient = Storage.FindClientByID(recipientId);
             if (Recipient == null)
             {
                 throw new Exception("Transaction reading fail");
             }
-            Recipient.AddTransaction(this);
-
+            
             value = _value;
+
+            Sender.AddTransaction(this);
+            Recipient.AddTransaction(this);
         }
 
         public void Revoke()

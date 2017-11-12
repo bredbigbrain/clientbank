@@ -14,10 +14,10 @@ namespace WindowsFormsApp1
     {
         private int value;
 
-        public TransNotificationForm(Client client)
+        public TransNotificationForm(string recipientName)
         {
             InitializeComponent();
-            label3.Text = client.name;
+            label3.Text = recipientName;
         }
 
         private void TransNotificationForm_Load(object sender, EventArgs e)

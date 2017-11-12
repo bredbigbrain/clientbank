@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml;
 
 namespace WindowsFormsApp1
 {
@@ -42,25 +43,23 @@ namespace WindowsFormsApp1
             money += value;
         }
 
-        public void AddTransaction(Operation trans)
+        public void AddTransaction(Operation oper)
         {
-            transactions.Add(trans);
-            analiserTR.AddTransaction((Transaction)trans);
+            transactions.Add(oper);
+            if(oper.type == OperationTypes.Transaction)
+                analiserTR.AddTransaction((Transaction)oper);
         }
 
-        public void RemoveTransaction(Operation trans)
+        public void RemoveTransaction(Operation oper)
         {
-            if (transactions.Contains(trans))
+            if (transactions.Contains(oper))
             {
-                transactions.Remove(trans);
-                analiserTR.RemoveTransaction((Transaction)trans);
+                transactions.Remove(oper);
+                if (oper.type == OperationTypes.Transaction)
+                    analiserTR.RemoveTransaction((Transaction)oper);
             }
         }
-        /*
-        public void RevokeTransaction(Transaction trans)
-        {
-        }
-        */
+        
         public List<Operation> GetTransactionList()
         {
             return transactions;
@@ -75,7 +74,7 @@ namespace WindowsFormsApp1
         {
             foreach(Operation op in transactions)
             {
-                if (op.type.Equals("Credit"))
+                if (op.type == OperationTypes.Credit)
                 {
                     Credit cr = op as Credit;
                     cr.AccrualInterest();
@@ -95,6 +94,23 @@ namespace WindowsFormsApp1
         public void TransactionChecked(int recipientID, bool isCheckCorrect)
         {
             analiserTR.SetCheckResult(recipientID, isCheckCorrect);
+        }
+
+        public void SaveAnaliserDataXml(XmlWriter writer)
+        {
+            if (analiserTR != null)
+            {
+                analiserTR.SaveXml(writer);
+            }
+        }
+
+        public void SetAnaliserData(List<string> data)
+        {
+            analiserTR = new TransactionAnaliser(data, this);
+            if (analiserTR.CheckRecipients.Count > 0)
+            {
+                CheckRecipients = analiserTR.CheckRecipients;
+            }
         }
 
         public static Client GetBankAsClient()

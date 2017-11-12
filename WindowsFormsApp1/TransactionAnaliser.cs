@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml;
 
 namespace WindowsFormsApp1
 {
@@ -11,19 +12,33 @@ namespace WindowsFormsApp1
     public class TransactionAnaliser
     {
         private List<TransactionSequence> sequences;
-        private Client Sender;
+        private Client sender;
         public List<int> CheckRecipients { get; private set; }
 
-        public TransactionAnaliser(Client _Sender)
+        public TransactionAnaliser(Client _sender)
         {
             sequences = new List<TransactionSequence>();
             CheckRecipients = new List<int>();
-            Sender = _Sender;
+            sender = _sender;
+        }
+
+        public TransactionAnaliser(List<string> data, Client _sender)
+        {
+            sequences = new List<TransactionSequence>();
+            CheckRecipients = new List<int>();
+            sender = _sender;
+
+            for (int i = 0; i < data.Count / 6; i++)
+            {
+                TransactionSequence seq = new TransactionSequence(Storage.FindClientByID(int.Parse(data[i * 6])), AddCheck);
+                seq.SetData(data.GetRange(i * 6 + 1, 5));
+                sequences.Add(seq);
+            }
         }
 
         public void AddTransaction(Transaction trans)
         {
-            if (trans != null & trans.Sender == Sender)
+            if (trans != null & trans.Sender == sender)
             {
                 bool added = false;
                 if (sequences.Count != 0)
@@ -32,7 +47,7 @@ namespace WindowsFormsApp1
                     {
                         if (ts.Recipient.Equals(trans.Recipient))
                         {
-                            ts.AddTransaction(trans);
+                            ts.AddTransaction();
                             added = true;
                             break;
                         }
@@ -42,38 +57,31 @@ namespace WindowsFormsApp1
                 if (!added || sequences.Count == 0)
                 {
                     TransactionSequence seq = new TransactionSequence(trans.Recipient, AddCheck);
-                    seq.AddTransaction(trans);
+                    seq.AddTransaction();
                     sequences.Add(seq);
                 }
             }
         }
-         
+
         public void RemoveTransaction(Transaction trans)
         {
-            if(sequences.Count == 0)
+            if (trans != null & trans.Sender == sender)
             {
-                throw new Exception("Sequences analiser error");
-            }
-            else
-            {
-                if (trans != null & trans.Sender == Sender)
+                bool removed = false;
+                if (sequences.Count != 0)
                 {
-                    bool removed = false;
-                    if (sequences.Count != 0)
+                    foreach (TransactionSequence ts in sequences)
                     {
-                        foreach (TransactionSequence ts in sequences)
+                        if (ts.Recipient.Equals(trans.Recipient))
                         {
-                            if (ts.Recipient.Equals(trans.Recipient))
-                            {
-                                ts.RemoveTransaction(trans);
-                                removed = true;
-                                break;
-                            }
+                            ts.RemoveTransaction();
+                            removed = true;
+                            break;
                         }
-                        if (!removed)
-                        {
-                            throw new Exception("Sequences analiser error");
-                        }
+                    }
+                    if (!removed)
+                    {
+                        throw new Exception("Sequences analiser error");
                     }
                 }
             }
@@ -106,17 +114,34 @@ namespace WindowsFormsApp1
         {
             CheckRecipients.Add(recipientID);
         }
+
+        public void SaveXml(XmlWriter output)
+        {
+            if(sequences != null && sequences.Count > 0)
+            {
+                output.WriteStartElement("AnaliserData");
+
+
+
+                foreach (TransactionSequence ts in sequences)
+                {
+                    ts.SaveXml(output);
+                }
+
+                output.WriteEndElement();
+            }
+        }
     }
 
     class TransactionSequence
     {
         public Client Recipient { get; private set; }
 
-        private int tailLenth;
-        private int sequence;
+        private byte tailLenth;
+        private byte sequence;
         private byte errorChecks;
         private bool waitingCheckResult;
-        private List<Transaction> currentMonthTransactions;
+        private byte thisMonthTransactions;
         Check check;
 
         public TransactionSequence(Client recip, Check ch) 
@@ -126,30 +151,23 @@ namespace WindowsFormsApp1
             sequence = 0;
             errorChecks = 0;
             waitingCheckResult = false;
-            currentMonthTransactions = new List<Transaction>();
+            thisMonthTransactions = 0;
             check = ch;
         }
 
-        public void AddTransaction(Transaction trans)
+        public void AddTransaction()
         {
-            currentMonthTransactions.Add(trans);
+            thisMonthTransactions++;
         }
 
-        public void RemoveTransaction(Transaction trans)
+        public void RemoveTransaction()
         {
-            if (currentMonthTransactions.Contains(trans))
-            {
-                currentMonthTransactions.Remove(trans);
-            }
-            else
-            {
-                throw new Exception("Transaction sequence error");
-            }
+            thisMonthTransactions--;
         }
 
         public void NextMonth()
         {
-            if (currentMonthTransactions.Count > 0)
+            if (thisMonthTransactions > 0)
             {
                 sequence++;
             }
@@ -173,7 +191,7 @@ namespace WindowsFormsApp1
                 }
             }
 
-            currentMonthTransactions.Clear();
+            thisMonthTransactions = 0;
         }
 
         public void SetCheckResult(bool isCorrect)
@@ -194,6 +212,34 @@ namespace WindowsFormsApp1
                 }
             }
             waitingCheckResult = false;
+        }
+
+        public void SetData(List<string> data)
+        {
+            tailLenth = byte.Parse(data[0]);
+            sequence = byte.Parse(data[1]);
+            errorChecks = byte.Parse(data[2]);
+            waitingCheckResult = bool.Parse(data[3]);
+            thisMonthTransactions = byte.Parse(data[4]);
+
+            if(waitingCheckResult)
+            {
+                check(Recipient.id);
+            }
+        }
+
+        public void SaveXml(XmlWriter output)
+        {
+            output.WriteStartElement("Sequence");
+
+            output.WriteElementString("RecipientID", Recipient.id.ToString());
+            output.WriteElementString("Tail", tailLenth.ToString());
+            output.WriteElementString("Sequen", sequence.ToString());
+            output.WriteElementString("ErrorChs", errorChecks.ToString());
+            output.WriteElementString("Waiting", waitingCheckResult.ToString());
+            output.WriteElementString("Transactions", thisMonthTransactions.ToString());
+
+            output.WriteEndElement();
         }
     }
 }

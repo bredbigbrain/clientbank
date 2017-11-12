@@ -13,7 +13,7 @@ namespace WindowsFormsApp1
         private long transId;
         private int clientId;
         private int date;
-
+        private const string VERSION = "2";
 
         public Storage()
         {
@@ -33,6 +33,18 @@ namespace WindowsFormsApp1
 
             XmlDocument Doc = new XmlDocument();
             Doc.Load(path);
+
+            if (Doc.DocumentElement.FirstChild.Name.Equals("Version"))
+            {
+                if (!Doc.DocumentElement.FirstChild.InnerText.Equals(VERSION))
+                {
+                    throw new Exception("Файл неподходящей версии. " + Doc.DocumentElement.FirstChild.InnerText);
+                }
+            }
+            else
+            {
+                throw new Exception("Файл неподходящей версии");
+            }
 
             foreach (XmlNode Node in Doc.DocumentElement.ChildNodes)
             {
@@ -69,7 +81,8 @@ namespace WindowsFormsApp1
 
             foreach (XmlNode clientNode in Doc.DocumentElement.ChildNodes)
             {
-                if (clientNode.Name.Equals("Client") & clientNode.ChildNodes.Count == 7)
+                if (clientNode.Name.Equals("Client") & clientNode.ChildNodes.Count >= 7)
+                {
                     foreach (XmlNode transactNode in clientNode.ChildNodes.Item(6))
                     {
                         long id;
@@ -89,6 +102,18 @@ namespace WindowsFormsApp1
                         else
                             op = new Transaction(id, senderId, recipientId, value);
                     }
+
+                    List<string> data = new List<string>();
+                    foreach (XmlNode sequenceNode in clientNode.ChildNodes.Item(7))
+                    {
+                        foreach (XmlNode node in sequenceNode.ChildNodes)
+                        {
+                            data.Add(node.InnerText);
+                        }
+                    }
+                    Client client = FindClientByID(int.Parse(clientNode.ChildNodes.Item(0).InnerText));
+                    client.SetAnaliserData(data);
+                }
             }
         }
 
@@ -186,11 +211,11 @@ namespace WindowsFormsApp1
             {
                 if (cl.id == clientId)
                 {
-                    foreach (Transaction tran in cl.GetTransactionList())
+                    foreach (Operation oper in cl.GetTransactionList())
                     {
-                        if (tran.id == transId)
+                        if (oper.id == transId)
                         {
-                            tran.Revoke();
+                            ((Transaction)oper).Revoke();
                             return;
                         }
                     }
@@ -248,6 +273,7 @@ namespace WindowsFormsApp1
             XmlWriter output = XmlWriter.Create(path, sett);
             output.WriteStartElement(path);
 
+            output.WriteElementString("Version", VERSION);
             output.WriteElementString("NumberOfTransactions", transId.ToString());
             output.WriteElementString("NumberOfClients", clientId.ToString());
             output.WriteElementString("Date", date.ToString());
@@ -277,11 +303,11 @@ namespace WindowsFormsApp1
 
                     if (sendedTrans.Count > 0)
                     {
-                        output.WriteStartElement("Transactions");
+                        output.WriteStartElement("Operations");
 
                         foreach (Operation tr in sendedTrans)
                         {
-                            output.WriteStartElement("TransAct");
+                            output.WriteStartElement("Operation");
 
                             output.WriteElementString("ID", tr.id.ToString());
                             output.WriteElementString("senderId", tr.Sender.id.ToString());
@@ -294,6 +320,8 @@ namespace WindowsFormsApp1
 
                         output.WriteEndElement();
                     }
+
+                    cl.SaveAnaliserDataXml(output);
                 }
                 output.WriteEndElement();
             }
