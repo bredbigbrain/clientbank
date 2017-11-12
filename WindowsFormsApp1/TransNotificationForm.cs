@@ -44,7 +44,7 @@ namespace WindowsFormsApp1
 
         private void button8_Click(object sender, EventArgs e)
         {
-            DialogResult = DialogResult.Cancel;
+            DialogResult = DialogResult.No;
             Close();
         }
     }

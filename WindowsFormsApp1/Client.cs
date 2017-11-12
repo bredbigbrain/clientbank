@@ -94,6 +94,7 @@ namespace WindowsFormsApp1
         public void TransactionChecked(int recipientID, bool isCheckCorrect)
         {
             analiserTR.SetCheckResult(recipientID, isCheckCorrect);
+            CheckRecipients = analiserTR.CheckRecipients;
         }
 
         public void SaveAnaliserDataXml(XmlWriter writer)

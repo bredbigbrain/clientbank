@@ -104,6 +104,7 @@ namespace WindowsFormsApp1
                 if(ts.Recipient.id == recipientID)
                 {
                     ts.SetCheckResult(isCheckCorrect);
+                    CheckRecipients.Remove(recipientID);
                     return;
                 }
             }

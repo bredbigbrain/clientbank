@@ -88,7 +88,7 @@ namespace WindowsFormsApp1
 
                     if (e1 != null)
                     {
-                        if (int.TryParse(dataGridView1[0, e.RowIndex].Value.ToString(), out id))
+                        if (int.TryParse(dataGridView1[0, dataGridView1.CurrentCell.RowIndex].Value.ToString(), out id))
                             if (storageV.GetClientsTransactions(id) != null)
                             {
                                 transactions = storageV.GetClientsTransactions(id);
@@ -136,7 +136,7 @@ namespace WindowsFormsApp1
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message, "Open File Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(ex.Message + ex.StackTrace, "Open File Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 storageV.ClearClientsList();
                 ClearSheets();
                 UpdateUI(UI_States.BASE_NULL);
@@ -506,7 +506,10 @@ namespace WindowsFormsApp1
                 int clientID = (int)dataGridView1[0, dataGridView1.CurrentCell.RowIndex].Value;
                 Client cl = Storage.FindClientByID(clientID);
 
-                foreach (int recipientID in cl.CheckRecipients)
+                int[] checkIDs = new int[cl.CheckRecipients.Count];
+                cl.CheckRecipients.CopyTo(checkIDs);
+
+                foreach (int recipientID in checkIDs)
                 {
                     TransNotificationForm form = new TransNotificationForm(Storage.FindClientByID(recipientID).name);
                     form.ShowDialog();
@@ -519,7 +522,7 @@ namespace WindowsFormsApp1
                         UpdateClientsSheets();
                         UpdateTransactionsSheet(e1);
                     }
-                    else
+                    else if(form.DialogResult == DialogResult.No)
                     {
                         cl.TransactionChecked(recipientID, false);
                     }

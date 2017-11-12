@@ -102,7 +102,9 @@ namespace WindowsFormsApp1
                         else
                             op = new Transaction(id, senderId, recipientId, value);
                     }
-
+                }
+                if (clientNode.Name.Equals("Client") & clientNode.ChildNodes.Count >= 8)
+                {
                     List<string> data = new List<string>();
                     foreach (XmlNode sequenceNode in clientNode.ChildNodes.Item(7))
                     {
